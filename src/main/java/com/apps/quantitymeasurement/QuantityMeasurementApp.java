@@ -19,5 +19,12 @@ public class QuantityMeasurementApp {
 
 		System.out.println("Input: " + length3 + " and " + length4);
 		System.out.println("Equal (" + demonstrateLengthEquality(length3, length4) + ")");
+		
+		Length length5 = new Length(100.0, LengthUnit.CENTIMETERS);
+		Length length6 = new Length(39.3701, LengthUnit.INCHES);
+
+		System.out.println("Input: " + length5 + " and " + length6);
+		System.out.println("Equal (" + demonstrateLengthEquality(length5, length6) + ")");
+		
 	}
 }
