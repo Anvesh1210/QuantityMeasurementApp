@@ -3,7 +3,7 @@ package com.apps.quantitymeasurement;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class LengthEqualityTest {
+public class QuantityMeasurementAppTest {
 
 	@Test
 	public void testEquality_FeetToFeet_SameValue() {
@@ -168,5 +168,91 @@ public class LengthEqualityTest {
 	public void testEquality_CentimetersNullComparison() {
 		Length cm = new Length(1.0, LengthUnit.CENTIMETERS);
 		assertFalse(cm.equals(null));
+	}
+
+	private static final double EPSILON = 1e-6;
+
+	@Test
+	public void testConversion_FeetToInches() {
+		assertEquals(12.0, Length.convert(1.0, LengthUnit.FEET, LengthUnit.INCHES), EPSILON);
+	}
+
+	@Test
+	public void testConversion_InchesToFeet() {
+		assertEquals(2.0, Length.convert(24.0, LengthUnit.INCHES, LengthUnit.FEET), EPSILON);
+	}
+
+	@Test
+	public void testConversion_YardsToInches() {
+		assertEquals(36.0, Length.convert(1.0, LengthUnit.YARDS, LengthUnit.INCHES), EPSILON);
+	}
+
+	@Test
+	public void testConversion_InchesToYards() {
+		assertEquals(2.0, Length.convert(72.0, LengthUnit.INCHES, LengthUnit.YARDS), EPSILON);
+	}
+
+	@Test
+	public void testConversion_CentimetersToInches() {
+		assertEquals(1.0, Length.convert(2.54, LengthUnit.CENTIMETERS, LengthUnit.INCHES), EPSILON);
+	}
+
+	@Test
+	public void testConversion_FeetToYard() {
+		assertEquals(2.0, Length.convert(6.0, LengthUnit.FEET, LengthUnit.YARDS), EPSILON);
+	}
+
+	@Test
+	public void testConversion_RoundTrip_PreservesValue() {
+		double original = 5.0;
+
+		double toInches = Length.convert(original, LengthUnit.FEET, LengthUnit.INCHES);
+		double backToFeet = Length.convert(toInches, LengthUnit.INCHES, LengthUnit.FEET);
+
+		assertEquals(original, backToFeet, EPSILON);
+	}
+
+	@Test
+	public void testConversion_ZeroValue() {
+		assertEquals(0.0, Length.convert(0.0, LengthUnit.FEET, LengthUnit.INCHES), EPSILON);
+	}
+
+	@Test
+	public void testConversion_NegativeValue() {
+		assertEquals(-12.0, Length.convert(-1.0, LengthUnit.FEET, LengthUnit.INCHES), EPSILON);
+	}
+
+	@Test
+	public void testConversion_SameUnit() {
+		assertEquals(5.0, Length.convert(5.0, LengthUnit.FEET, LengthUnit.FEET), EPSILON);
+	}
+
+	@Test
+	public void testConversion_InvalidUnit_Throws() {
+		assertThrows(IllegalArgumentException.class, () -> Length.convert(1.0, null, LengthUnit.FEET));
+
+		assertThrows(IllegalArgumentException.class, () -> Length.convert(1.0, LengthUnit.FEET, null));
+	}
+
+	@Test
+	public void testConversion_NaNOrInfinite_Throws() {
+		assertThrows(IllegalArgumentException.class,
+				() -> Length.convert(Double.NaN, LengthUnit.FEET, LengthUnit.INCHES));
+
+		assertThrows(IllegalArgumentException.class,
+				() -> Length.convert(Double.POSITIVE_INFINITY, LengthUnit.FEET, LengthUnit.INCHES));
+
+		assertThrows(IllegalArgumentException.class,
+				() -> Length.convert(Double.NEGATIVE_INFINITY, LengthUnit.FEET, LengthUnit.INCHES));
+	}
+
+	@Test
+	public void testConversion_LargeValue() {
+		assertEquals(1200000.0, Length.convert(100000.0, LengthUnit.FEET, LengthUnit.INCHES), EPSILON);
+	}
+
+	@Test
+	public void testConversion_SmallValue() {
+		assertEquals(0.393701, Length.convert(1.0, LengthUnit.CENTIMETERS, LengthUnit.INCHES), EPSILON);
 	}
 }
