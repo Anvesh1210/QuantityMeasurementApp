@@ -7,6 +7,8 @@ public class Length {
 	private final double value;
 	private final LengthUnit unit;
 
+	private static final double EPSILON = 1e-6;
+
 	// Constructor
 	public Length(double value, LengthUnit unit) {
 		if (unit == null)
@@ -29,9 +31,35 @@ public class Length {
 		return Double.compare(this.convertToBaseUnit(), other.convertToBaseUnit()) == 0;
 	}
 
+	public Length add(Length other) {
+
+		if (other == null)
+			throw new IllegalArgumentException("Other length cannot be null.");
+
+		// Convert both to base unit (inches)
+		double thisBase = this.value * this.unit.getConversionFactor();
+		double otherBase = other.value * other.unit.getConversionFactor();
+
+		// Add in base unit
+		double sumBase = thisBase + otherBase;
+
+		// Convert back to this unit
+		double resultValue = sumBase / this.unit.getConversionFactor();
+
+		return new Length(resultValue, this.unit);
+	}
+
+	public static Length add(Length l1, Length l2) {
+		if (l1 == null || l2 == null)
+			throw new IllegalArgumentException("Operands cannot be null.");
+
+		return l1.add(l2);
+	}
+
 	// equals() override
 	@Override
 	public boolean equals(Object obj) {
+
 		if (this == obj)
 			return true;
 
@@ -39,7 +67,11 @@ public class Length {
 			return false;
 
 		Length other = (Length) obj;
-		return this.compare(other);
+
+		double thisBase = this.value * this.unit.getConversionFactor();
+		double otherBase = other.value * other.unit.getConversionFactor();
+
+		return Math.abs(thisBase - otherBase) < EPSILON;
 	}
 
 	public Length convertTo(LengthUnit targetUnit) {
@@ -69,5 +101,13 @@ public class Length {
 	@Override
 	public String toString() {
 		return "Quantity(" + value + ", " + unit + ")";
+	}
+
+	public double getValue() {
+		return value;
+	}
+
+	public LengthUnit getUnit() {
+		return unit;
 	}
 }
