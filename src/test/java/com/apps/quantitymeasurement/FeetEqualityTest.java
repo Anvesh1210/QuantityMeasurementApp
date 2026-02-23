@@ -9,17 +9,13 @@ public class FeetEqualityTest {
 	// checking same value
 	@Test
 	public void testFeetEquality_SameValue() {
-		Feet feet1 = new Feet(1.0);
-		Feet feet2 = new Feet(1.0);
-		assertEquals(true, feet1.equals(feet2));
+		assertEquals(true, QuantityMeasurementApp.compareFeet(1.0, 1.0));
 	}
 
 	// checking different values
 	@Test
 	public void testFeetEquality_DifferentValue() {
-		Feet feet1 = new Feet(1.0);
-		Feet feet2 = new Feet(2.0);
-		assertEquals(false, feet1.equals(feet2));
+		assertEquals(false, QuantityMeasurementApp.compareFeet(1.0, 2.0));
 	}
 
 	// check for a null value
