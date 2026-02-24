@@ -56,6 +56,18 @@ public class Length {
 		return l1.add(l2);
 	}
 
+	// ---------------- UC7 ADDITION WITH EXPLICIT TARGET ----------------
+
+	public static Length add(Length l1, Length l2, LengthUnit targetUnit) {
+		if (l1 == null || l2 == null)
+			throw new IllegalArgumentException("Operands cannot be null.");
+		if (targetUnit == null)
+			throw new IllegalArgumentException("Target unit cannot be null.");
+		double sumBase = l1.convertToBaseUnit() + l2.convertToBaseUnit();
+		double resultValue = sumBase / targetUnit.getConversionFactor();
+		return new Length(resultValue, targetUnit);
+	}
+
 	// equals() override
 	@Override
 	public boolean equals(Object obj) {
