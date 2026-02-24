@@ -440,4 +440,93 @@ public class QuantityMeasurementAppTest {
 
 		assertThrows(IllegalArgumentException.class, () -> Length.add(l1, l2, null));
 	}
+
+	// Standalone Enum Tests
+	@Test
+	public void testLengthUnitEnum_FeetConstant() {
+		assertEquals(1.0, LengthUnit.FEET.getConversionFactor(), EPSILON);
+	}
+
+	@Test
+	public void testLengthUnitEnum_InchesConstant() {
+		assertEquals(1.0 / 12.0, LengthUnit.INCHES.getConversionFactor(), EPSILON);
+	}
+
+	@Test
+	public void testLengthUnitEnum_YardsConstant() {
+		assertEquals(3.0, LengthUnit.YARDS.getConversionFactor(), EPSILON);
+	}
+
+	@Test
+	public void testLengthUnitEnum_CentimetersConstant() {
+		assertEquals(1.0 / 30.48, LengthUnit.CENTIMETERS.getConversionFactor(), EPSILON);
+	}
+
+	// convertToBaseUnit() Tests
+	@Test
+	public void testConvertToBaseUnit_FeetToFeet() {
+		assertEquals(5.0, LengthUnit.FEET.convertToBaseUnit(5.0), EPSILON);
+	}
+
+	@Test
+	public void testConvertToBaseUnit_InchesToFeet() {
+		assertEquals(1.0, LengthUnit.INCHES.convertToBaseUnit(12.0), EPSILON);
+	}
+
+	@Test
+	public void testConvertToBaseUnit_YardsToFeet() {
+		assertEquals(3.0, LengthUnit.YARDS.convertToBaseUnit(1.0), EPSILON);
+	}
+
+	@Test
+	public void testConvertToBaseUnit_CentimetersToFeet() {
+		assertEquals(1.0, LengthUnit.CENTIMETERS.convertToBaseUnit(30.48), EPSILON);
+	}
+
+	// Refactored Delegation Tests
+
+	@Test
+	public void testQuantityLengthRefactored_Equality() {
+		assertTrue(new Length(1.0, LengthUnit.FEET).equals(new Length(12.0, LengthUnit.INCHES)));
+	}
+
+	@Test
+	public void testQuantityLengthRefactored_ConvertTo() {
+		Length result = new Length(1.0, LengthUnit.FEET).convertTo(LengthUnit.INCHES);
+
+		assertEquals(12.0, result.getValue(), EPSILON);
+		assertEquals(LengthUnit.INCHES, result.getUnit());
+	}
+
+	@Test
+	public void testQuantityLengthRefactored_AddWithTargetUnit() {
+		Length result = Length.add(new Length(1.0, LengthUnit.FEET), new Length(12.0, LengthUnit.INCHES),
+				LengthUnit.YARDS);
+
+		assertEquals(0.6666667, result.getValue(), 1e-5);
+		assertEquals(LengthUnit.YARDS, result.getUnit());
+	}
+
+	// Invalid Value Handling
+	@Test
+	public void testQuantityLengthRefactored_InvalidValue() {
+		assertThrows(IllegalArgumentException.class, () -> new Length(Double.NaN, LengthUnit.FEET));
+	}
+
+	// Round Trip Precision Test
+	@Test
+	public void testRoundTripConversion_RefactoredDesign() {
+		double original = 10.0;
+		double converted = Length.convert(original, LengthUnit.FEET, LengthUnit.INCHES);
+		double back = Length.convert(converted, LengthUnit.INCHES, LengthUnit.FEET);
+		assertEquals(original, back, EPSILON);
+	}
+
+	// Enum Immutability Test
+
+	@Test
+	public void testUnitImmutability() {
+		LengthUnit unit = LengthUnit.FEET;
+		assertEquals(1.0, unit.getConversionFactor(), EPSILON);
+	}
 }
