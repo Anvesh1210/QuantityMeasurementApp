@@ -46,21 +46,29 @@ public class QuantityMeasurementApp {
 //		Length feet = new Length(3.0, LengthUnit.FEET);
 //		System.out.println("Equality check: " + demonstrateLengthEquality(yard, feet));
 
-		Length feet = new Length(1.0, LengthUnit.FEET);
-		Length inches = new Length(12.0, LengthUnit.INCHES);
+//		Length feet = new Length(1.0, LengthUnit.FEET);
+//		Length inches = new Length(12.0, LengthUnit.INCHES);
+//
+//		Length result1 = feet.add(inches);
+//		System.out.println("1 FEET + 12 INCHES = " + result1);
+//
+//		Length result2 = inches.add(feet);
+//		System.out.println("12 INCHES + 1 FEET = " + result2);
+//
+//		Length yard = new Length(1.0, LengthUnit.YARDS);
+//		Length result3 = yard.add(new Length(3.0, LengthUnit.FEET));
+//		System.out.println("1 YARD + 3 FEET = " + result3);
+//
+//		Length cm = new Length(2.54, LengthUnit.CENTIMETERS);
+//		Length result4 = cm.add(new Length(1.0, LengthUnit.INCHES));
+//		System.out.println("2.54 CM + 1 INCH = " + result4);
 
-		Length result1 = feet.add(inches);
-		System.out.println("1 FEET + 12 INCHES = " + result1);
+		Length l1 = new Length(1.0, LengthUnit.FEET);
+		Length l2 = new Length(12.0, LengthUnit.INCHES);
 
-		Length result2 = inches.add(feet);
-		System.out.println("12 INCHES + 1 FEET = " + result2);
-
-		Length yard = new Length(1.0, LengthUnit.YARDS);
-		Length result3 = yard.add(new Length(3.0, LengthUnit.FEET));
-		System.out.println("1 YARD + 3 FEET = " + result3);
-
-		Length cm = new Length(2.54, LengthUnit.CENTIMETERS);
-		Length result4 = cm.add(new Length(1.0, LengthUnit.INCHES));
-		System.out.println("2.54 CM + 1 INCH = " + result4);
+		System.out.println(Length.add(l1, l2, LengthUnit.FEET));
+		System.out.println(Length.add(l1, l2, LengthUnit.INCHES));
+		System.out.println(Length.add(l1, l2, LengthUnit.YARDS));
+		System.out.println(Length.add(l1, l2, LengthUnit.CENTIMETERS));
 	}
 }
