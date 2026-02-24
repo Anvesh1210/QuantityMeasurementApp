@@ -383,4 +383,61 @@ public class QuantityMeasurementAppTest {
 		assertEquals(0.003, result.getValue(), EPSILON);
 		assertEquals(LengthUnit.FEET, result.getUnit());
 	}
+
+	@Test
+	public void testAddition_ExplicitTargetUnit_Feet() {
+
+		Length l1 = new Length(1.0, LengthUnit.FEET);
+		Length l2 = new Length(12.0, LengthUnit.INCHES);
+
+		Length result = Length.add(l1, l2, LengthUnit.FEET);
+
+		assertEquals(2.0, result.getValue(), EPSILON);
+		assertEquals(LengthUnit.FEET, result.getUnit());
+	}
+
+	@Test
+	public void testAddition_ExplicitTargetUnit_Inches() {
+
+		Length l1 = new Length(1.0, LengthUnit.FEET);
+		Length l2 = new Length(12.0, LengthUnit.INCHES);
+
+		Length result = Length.add(l1, l2, LengthUnit.INCHES);
+
+		assertEquals(24.0, result.getValue(), EPSILON);
+		assertEquals(LengthUnit.INCHES, result.getUnit());
+	}
+
+	@Test
+	public void testAddition_ExplicitTargetUnit_Yards() {
+
+		Length l1 = new Length(1.0, LengthUnit.FEET);
+		Length l2 = new Length(12.0, LengthUnit.INCHES);
+
+		Length result = Length.add(l1, l2, LengthUnit.YARDS);
+
+		assertEquals(0.6666667, result.getValue(), 1e-5);
+		assertEquals(LengthUnit.YARDS, result.getUnit());
+	}
+
+	@Test
+	public void testAddition_ExplicitTargetUnit_Commutativity() {
+
+		Length l1 = new Length(1.0, LengthUnit.FEET);
+		Length l2 = new Length(12.0, LengthUnit.INCHES);
+
+		Length r1 = Length.add(l1, l2, LengthUnit.YARDS);
+		Length r2 = Length.add(l2, l1, LengthUnit.YARDS);
+
+		assertTrue(r1.equals(r2));
+	}
+
+	@Test
+	public void testAddition_ExplicitTargetUnit_NullTarget() {
+
+		Length l1 = new Length(1.0, LengthUnit.FEET);
+		Length l2 = new Length(12.0, LengthUnit.INCHES);
+
+		assertThrows(IllegalArgumentException.class, () -> Length.add(l1, l2, null));
+	}
 }
