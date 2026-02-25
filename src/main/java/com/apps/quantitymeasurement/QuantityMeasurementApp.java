@@ -55,5 +55,42 @@ public class QuantityMeasurementApp {
 		System.out.println("Volume Subtraction: " + demonstrateSubtraction(volume1, volume2, VolumeUnit.LITRE));
 		System.out.println("Volume Division: " + demonstrateDivision(volume1, volume2));
 
+		// TEMPERATURE (UC14)
+		// =========================
+		System.out.println("\n===== TEMPERATURE =====");
+
+		Quantity<TemperatureUnit> temp1 = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
+		Quantity<TemperatureUnit> temp2 = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
+
+		System.out.println("Temperature Equality (0C == 32F): " + demonstrateEquality(temp1, temp2));
+
+		System.out.println("Convert 100C to F: "
+				+ demonstrateConversion(new Quantity<>(100.0, TemperatureUnit.CELSIUS), TemperatureUnit.FAHRENHEIT));
+
+		System.out.println("Convert 273.15K to C: "
+				+ demonstrateConversion(new Quantity<>(273.15, TemperatureUnit.KELVIN), TemperatureUnit.CELSIUS));
+
+		System.out.println("Convert -40C to F: "
+				+ demonstrateConversion(new Quantity<>(-40.0, TemperatureUnit.CELSIUS), TemperatureUnit.FAHRENHEIT));
+
+		// Unsupported Operations Demo
+		try {
+			demonstrateAddition(temp1, temp2, TemperatureUnit.CELSIUS);
+		} catch (UnsupportedOperationException e) {
+			System.out.println("Addition Error: " + e.getMessage());
+		}
+
+		try {
+			demonstrateSubtraction(temp1, temp2, TemperatureUnit.CELSIUS);
+		} catch (UnsupportedOperationException e) {
+			System.out.println("Subtraction Error: " + e.getMessage());
+		}
+
+		try {
+			demonstrateDivision(temp1, temp2);
+		} catch (UnsupportedOperationException e) {
+			System.out.println("Division Error: " + e.getMessage());
+		}
+
 	}
 }
