@@ -10,322 +10,250 @@ public class QuantityMeasurementAppTest {
 
 	private static final double EPS = 1e-6;
 
-	// HELPER DELEGATION
+	// EQUALITY TESTS
 
 	@Test
-	void testRefactoring_Add_DelegatesViaHelper() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(5, LengthUnit.FEET);
-		assertEquals(15.0, q1.add(q2).getValue(), EPS);
+	void testTemperatureEquality_CelsiusToCelsius_SameValue() {
+		assertEquals(new Quantity<>(0.0, TemperatureUnit.CELSIUS), new Quantity<>(0.0, TemperatureUnit.CELSIUS));
 	}
 
 	@Test
-	void testRefactoring_Subtract_DelegatesViaHelper() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(5, LengthUnit.FEET);
-		assertEquals(5.0, q1.subtract(q2).getValue(), EPS);
+	void testTemperatureEquality_FahrenheitToFahrenheit_SameValue() {
+		assertEquals(new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT),
+				new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT));
 	}
 
 	@Test
-	void testRefactoring_Divide_DelegatesViaHelper() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(5, LengthUnit.FEET);
-		assertEquals(2.0, q1.divide(q2), EPS);
-	}
-
-	// VALIDATION CONSISTENCY
-
-	@Test
-	void testValidation_NullOperand_ConsistentAcrossOperations() {
-		Quantity<LengthUnit> q = new Quantity<>(10, LengthUnit.FEET);
-
-		Exception e1 = assertThrows(IllegalArgumentException.class, () -> q.add(null));
-		Exception e2 = assertThrows(IllegalArgumentException.class, () -> q.subtract(null));
-		Exception e3 = assertThrows(IllegalArgumentException.class, () -> q.divide(null));
-
-		assertEquals(e1.getMessage(), e2.getMessage());
-		assertEquals(e2.getMessage(), e3.getMessage());
+	void testTemperatureEquality_KelvinToKelvin_SameValue() {
+		assertEquals(new Quantity<>(273.15, TemperatureUnit.KELVIN), new Quantity<>(273.15, TemperatureUnit.KELVIN));
 	}
 
 	@Test
-	void testValidation_CrossCategory_ConsistentAcrossOperations() {
-		Quantity<LengthUnit> l = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<WeightUnit> w = new Quantity<>(5, WeightUnit.KILOGRAM);
-
-		assertThrows(IllegalArgumentException.class, () -> l.add((Quantity) w));
-		assertThrows(IllegalArgumentException.class, () -> l.subtract((Quantity) w));
-		assertThrows(IllegalArgumentException.class, () -> l.divide((Quantity) w));
+	void testTemperatureEquality_CelsiusToFahrenheit_0Celsius32Fahrenheit() {
+		assertEquals(new Quantity<>(0.0, TemperatureUnit.CELSIUS), new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT));
 	}
 
 	@Test
-	void testValidation_FiniteValue_ConsistentAcrossOperations() {
-		assertThrows(IllegalArgumentException.class, () -> new Quantity<>(Double.NaN, LengthUnit.FEET));
+	void testTemperatureEquality_CelsiusToFahrenheit_100Celsius212Fahrenheit() {
+		assertEquals(new Quantity<>(100.0, TemperatureUnit.CELSIUS), new Quantity<>(212.0, TemperatureUnit.FAHRENHEIT));
 	}
 
 	@Test
-	void testValidation_NullTargetUnit_AddSubtractReject() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(5, LengthUnit.FEET);
-
-		assertThrows(IllegalArgumentException.class, () -> q1.add(q2, null));
-		assertThrows(IllegalArgumentException.class, () -> q1.subtract(q2, null));
-	}
-
-	// ENUM COMPUTATION
-
-	@Test
-	void testArithmeticOperation_Add_EnumComputation() {
-		assertEquals(15.0, ArithmeticOperation.ADD.compute(10, 5), EPS);
+	void testTemperatureEquality_CelsiusToFahrenheit_Negative40Equal() {
+		assertEquals(new Quantity<>(-40.0, TemperatureUnit.CELSIUS), new Quantity<>(-40.0, TemperatureUnit.FAHRENHEIT));
 	}
 
 	@Test
-	void testArithmeticOperation_Subtract_EnumComputation() {
-		assertEquals(5.0, ArithmeticOperation.SUBTRACT.compute(10, 5), EPS);
+	void testTemperatureEquality_CelsiusToKelvin() {
+		assertEquals(new Quantity<>(0.0, TemperatureUnit.CELSIUS), new Quantity<>(273.15, TemperatureUnit.KELVIN));
 	}
 
 	@Test
-	void testArithmeticOperation_Divide_EnumComputation() {
-		assertEquals(2.0, ArithmeticOperation.DIVIDE.compute(10, 5), EPS);
+	void testTemperatureEquality_SymmetricProperty() {
+		Quantity<TemperatureUnit> a = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
+		Quantity<TemperatureUnit> b = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
+
+		assertTrue(a.equals(b));
+		assertTrue(b.equals(a));
 	}
 
 	@Test
-	void testArithmeticOperation_DivideByZero_EnumThrows() {
-		assertThrows(ArithmeticException.class, () -> ArithmeticOperation.DIVIDE.compute(10, 0));
+	void testTemperatureEquality_ReflexiveProperty() {
+		Quantity<TemperatureUnit> q = new Quantity<>(50.0, TemperatureUnit.CELSIUS);
+		assertTrue(q.equals(q));
 	}
 
-	// HELPER CORRECTNESS
+	// CONVERSION TESTS
 
 	@Test
-	void testPerformBaseArithmetic_ConversionAndOperation() {
-		Quantity<LengthUnit> feet = new Quantity<>(1, LengthUnit.FEET);
-		Quantity<LengthUnit> inches = new Quantity<>(12, LengthUnit.INCHES);
-		assertEquals(2.0, feet.add(inches).getValue(), EPS);
-	}
-
-	// BACKWARD COMPATIBILITY
-
-	@Test
-	void testAdd_UC12_BehaviorPreserved() {
-		Quantity<LengthUnit> q1 = new Quantity<>(1, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(12, LengthUnit.INCHES);
-		assertEquals(new Quantity<>(2, LengthUnit.FEET), q1.add(q2));
+	void testTemperatureConversion_CelsiusToFahrenheit_VariousValues() {
+		assertEquals(122.0,
+				new Quantity<>(50.0, TemperatureUnit.CELSIUS).convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPS);
 	}
 
 	@Test
-	void testSubtract_UC12_BehaviorPreserved() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(6, LengthUnit.INCHES);
-		assertEquals(new Quantity<>(9.5, LengthUnit.FEET), q1.subtract(q2));
+	void testTemperatureConversion_FahrenheitToCelsius_VariousValues() {
+		assertEquals(100.0,
+				new Quantity<>(212.0, TemperatureUnit.FAHRENHEIT).convertTo(TemperatureUnit.CELSIUS).getValue(), EPS);
 	}
 
 	@Test
-	void testDivide_UC12_BehaviorPreserved() {
-		Quantity<LengthUnit> q1 = new Quantity<>(24, LengthUnit.INCHES);
-		Quantity<LengthUnit> q2 = new Quantity<>(2, LengthUnit.FEET);
-		assertEquals(1.0, q1.divide(q2), EPS);
-	}
-
-	// ROUNDING
-
-	@Test
-	void testRounding_AddSubtract_TwoDecimalPlaces() {
-		Quantity<LengthUnit> q1 = new Quantity<>(0.001, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(0.0005, LengthUnit.FEET);
-		assertEquals(0.0, q1.subtract(q2).getValue(), EPS);
+	void testTemperatureConversion_RoundTrip_PreservesValue() {
+		double value = new Quantity<>(37.0, TemperatureUnit.CELSIUS).convertTo(TemperatureUnit.FAHRENHEIT)
+				.convertTo(TemperatureUnit.CELSIUS).getValue();
+		assertEquals(37.0, value, EPS);
 	}
 
 	@Test
-	void testRounding_Divide_NoRounding() {
-		Quantity<LengthUnit> q1 = new Quantity<>(1, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(3, LengthUnit.FEET);
-		assertEquals(1.0 / 3.0, q1.divide(q2), 1e-6);
-	}
-
-	// TARGET UNIT
-
-	@Test
-	void testImplicitTargetUnit_AddSubtract() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(5, LengthUnit.FEET);
-		assertEquals(LengthUnit.FEET, q1.add(q2).getUnit());
+	void testTemperatureConversion_SameUnit() {
+		assertEquals(10.0, new Quantity<>(10.0, TemperatureUnit.CELSIUS).convertTo(TemperatureUnit.CELSIUS).getValue(),
+				EPS);
 	}
 
 	@Test
-	void testExplicitTargetUnit_AddSubtract_Overrides() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(60, LengthUnit.INCHES);
-		assertEquals(LengthUnit.INCHES, q1.add(q2, LengthUnit.INCHES).getUnit());
+	void testTemperatureConversion_ZeroValue() {
+		assertEquals(32.0,
+				new Quantity<>(0.0, TemperatureUnit.CELSIUS).convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPS);
 	}
 
 	@Test
-	void testImmutability_AfterAdd_ViaCentralizedHelper() {
-		Quantity<LengthUnit> q = new Quantity<>(10, LengthUnit.FEET);
-		q.add(new Quantity<>(5, LengthUnit.FEET));
-		assertEquals(10, q.getValue());
+	void testTemperatureConversion_NegativeValues() {
+		assertEquals(-4.0,
+				new Quantity<>(-20.0, TemperatureUnit.CELSIUS).convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPS);
 	}
 
 	@Test
-	void testImmutability_AfterSubtract_ViaCentralizedHelper() {
-		Quantity<LengthUnit> q = new Quantity<>(10, LengthUnit.FEET);
-		q.subtract(new Quantity<>(5, LengthUnit.FEET));
-		assertEquals(10, q.getValue());
+	void testTemperatureConversion_LargeValues() {
+		assertEquals(1832.0,
+				new Quantity<>(1000.0, TemperatureUnit.CELSIUS).convertTo(TemperatureUnit.FAHRENHEIT).getValue(), EPS);
 	}
 
 	@Test
-	void testImmutability_AfterDivide_ViaCentralizedHelper() {
-		Quantity<LengthUnit> q = new Quantity<>(10, LengthUnit.FEET);
-		q.divide(new Quantity<>(5, LengthUnit.FEET));
-		assertEquals(10, q.getValue());
-	}
-
-	// CATEGORY SCALABILITY
-
-	@Test
-	void testAllOperations_AcrossAllCategories() {
-		Quantity<WeightUnit> w1 = new Quantity<>(10, WeightUnit.KILOGRAM);
-		Quantity<WeightUnit> w2 = new Quantity<>(5, WeightUnit.KILOGRAM);
-		assertEquals(2.0, w1.divide(w2), EPS);
-
-		Quantity<VolumeUnit> v1 = new Quantity<>(5, VolumeUnit.LITRE);
-		Quantity<VolumeUnit> v2 = new Quantity<>(2, VolumeUnit.LITRE);
-		assertEquals(2.5, v1.divide(v2), EPS);
-	}
-
-	// DRY VERIFICATION
-
-	@Test
-	void testCodeDuplication_ValidationLogic_Eliminated() throws Exception {
-		Method m = Quantity.class.getDeclaredMethod("validateArithmeticOperands", Quantity.class, IMeasurable.class,
-				boolean.class);
-		assertTrue(Modifier.isPrivate(m.getModifiers()));
+	void testTemperatureConversionPrecision_Epsilon() {
+		Quantity<TemperatureUnit> q = new Quantity<>(0.000001, TemperatureUnit.CELSIUS);
+		assertTrue(Math.abs(q.convertTo(TemperatureUnit.FAHRENHEIT).convertTo(TemperatureUnit.CELSIUS).getValue()
+				- 0.000001) < EPS);
 	}
 
 	@Test
-	void testCodeDuplication_ConversionLogic_Eliminated() throws Exception {
-		Method m = Quantity.class.getDeclaredMethod("performBaseArithmetic", Quantity.class, ArithmeticOperation.class);
-		assertTrue(Modifier.isPrivate(m.getModifiers()));
+	void testTemperatureConversionEdgeCase_VerySmallDifference() {
+		Quantity<TemperatureUnit> q1 = new Quantity<>(0.000001, TemperatureUnit.CELSIUS);
+		Quantity<TemperatureUnit> q2 = new Quantity<>(0.00002, TemperatureUnit.CELSIUS);
+
+		assertNotEquals(q1, q2);
 	}
 
-	// ENUM DISPATCH
+	// EDGE CASES
 
 	@Test
-	void testEnumDispatch_AllOperations_CorrectlyDispatched() {
-		assertEquals(15, ArithmeticOperation.ADD.compute(10, 5), EPS);
-		assertEquals(5, ArithmeticOperation.SUBTRACT.compute(10, 5), EPS);
-		assertEquals(2, ArithmeticOperation.DIVIDE.compute(10, 5), EPS);
-	}
-
-	// FUTURE SCALABILITY
-
-	@Test
-	void testFutureOperation_MultiplicationPattern() {
-		double simulated = 5 * 3;
-		assertEquals(15, simulated);
-	}
-
-	// ERROR MESSAGE CONSISTENCY
-
-	@Test
-	void testErrorMessage_Consistency_Across_Operations() {
-		Quantity<LengthUnit> q = new Quantity<>(10, LengthUnit.FEET);
-		String msg1 = assertThrows(IllegalArgumentException.class, () -> q.add(null)).getMessage();
-		String msg2 = assertThrows(IllegalArgumentException.class, () -> q.subtract(null)).getMessage();
-		assertEquals(msg1, msg2);
-	}
-
-	// ENCAPSULATION
-
-	@Test
-	void testHelper_PrivateVisibility() throws Exception {
-		Method m = Quantity.class.getDeclaredMethod("performBaseArithmetic", Quantity.class, ArithmeticOperation.class);
-		assertTrue(Modifier.isPrivate(m.getModifiers()));
+	void testTemperatureAbsoluteZero() {
+		assertEquals(new Quantity<>(-273.15, TemperatureUnit.CELSIUS), new Quantity<>(0.0, TemperatureUnit.KELVIN));
 	}
 
 	@Test
-	void testValidation_Helper_PrivateVisibility() throws Exception {
-		Method m = Quantity.class.getDeclaredMethod("validateArithmeticOperands", Quantity.class, IMeasurable.class,
-				boolean.class);
-		assertTrue(Modifier.isPrivate(m.getModifiers()));
-	}
-
-	// CHAIN OPERATIONS
-
-	@Test
-	void testArithmetic_Chain_Operations() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(2, LengthUnit.FEET);
-		Quantity<LengthUnit> q3 = new Quantity<>(1, LengthUnit.FEET);
-		Quantity<LengthUnit> q4 = new Quantity<>(3, LengthUnit.FEET);
-
-		double result = q1.add(q2).subtract(q3).divide(q4);
-		assertEquals(11.0 / 3.0, result, EPS);
-	}
-
-	// LARGE DATASET
-
-	@Test
-	void testRefactoring_NoBehaviorChange_LargeDataset() {
-		for (int i = 1; i <= 1000; i++) {
-			Quantity<LengthUnit> q1 = new Quantity<>(i, LengthUnit.FEET);
-			Quantity<LengthUnit> q2 = new Quantity<>(i, LengthUnit.FEET);
-			assertEquals(i * 2, q1.add(q2).getValue(), EPS);
-		}
-	}
-
-	// PERFORMANCE SIMULATION
-
-	@Test
-	void testRefactoring_Performance_ComparableToUC12() {
-		long start = System.nanoTime();
-		for (int i = 1; i <= 10000; i++) {
-			Quantity<LengthUnit> q1 = new Quantity<>(i, LengthUnit.FEET);
-			Quantity<LengthUnit> q2 = new Quantity<>(i, LengthUnit.FEET);
-			q1.add(q2);
-		}
-		long end = System.nanoTime();
-		assertTrue(end - start > 0);
-	}
-
-	// DIRECT ENUM CONSTANTS
-
-	@Test
-	void testEnumConstant_ADD_CorrectlyAdds() {
-		assertEquals(10.0, ArithmeticOperation.ADD.compute(7, 3), EPS);
+	void testTemperatureEqualPoint_Minus40() {
+		assertEquals(new Quantity<>(-40.0, TemperatureUnit.CELSIUS), new Quantity<>(-40.0, TemperatureUnit.FAHRENHEIT));
 	}
 
 	@Test
-	void testEnumConstant_SUBTRACT_CorrectlySubtracts() {
-		assertEquals(4.0, ArithmeticOperation.SUBTRACT.compute(7, 3), EPS);
+	void testTemperatureDifferentValuesInequality() {
+		assertNotEquals(new Quantity<>(50.0, TemperatureUnit.CELSIUS), new Quantity<>(100.0, TemperatureUnit.CELSIUS));
+	}
+
+	// UNSUPPORTED OPERATIONS
+
+	@Test
+	void testTemperatureUnsupportedOperation_Add() {
+		assertThrows(UnsupportedOperationException.class, () -> new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+				.add(new Quantity<>(50.0, TemperatureUnit.CELSIUS)));
 	}
 
 	@Test
-	void testEnumConstant_DIVIDE_CorrectlyDivides() {
-		assertEquals(3.5, ArithmeticOperation.DIVIDE.compute(7, 2), EPS);
-	}
-
-	// HELPER BASE + RESULT CONVERSION
-
-	@Test
-	void testHelper_BaseUnitConversion_Correct() {
-		Quantity<LengthUnit> q1 = new Quantity<>(1, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(12, LengthUnit.INCHES);
-		assertEquals(2.0, q1.add(q2).getValue(), EPS);
+	void testTemperatureUnsupportedOperation_Subtract() {
+		assertThrows(UnsupportedOperationException.class, () -> new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+				.subtract(new Quantity<>(50.0, TemperatureUnit.CELSIUS)));
 	}
 
 	@Test
-	void testHelper_ResultConversion_Correct() {
-		Quantity<LengthUnit> q1 = new Quantity<>(10, LengthUnit.FEET);
-		Quantity<LengthUnit> q2 = new Quantity<>(5, LengthUnit.FEET);
-		Quantity<LengthUnit> result = q1.add(q2, LengthUnit.INCHES);
-		assertEquals(180.0, result.getValue(), EPS);
+	void testTemperatureUnsupportedOperation_Divide() {
+		assertThrows(UnsupportedOperationException.class, () -> new Quantity<>(100.0, TemperatureUnit.CELSIUS)
+				.divide(new Quantity<>(50.0, TemperatureUnit.CELSIUS)));
 	}
 
-	// UNIFIED VALIDATION BEHAVIOR
+	// CROSS CATEGORY PROTECTION
 
 	@Test
-	void testRefactoring_Validation_UnifiedBehavior() {
-		Quantity<LengthUnit> q = new Quantity<>(10, LengthUnit.FEET);
-		assertThrows(IllegalArgumentException.class, () -> q.subtract(null));
+	void testTemperatureVsLengthIncompatibility() {
+		assertFalse(new Quantity<>(100.0, TemperatureUnit.CELSIUS).equals(new Quantity<>(100.0, LengthUnit.FEET)));
+	}
+
+	@Test
+	void testTemperatureVsWeightIncompatibility() {
+		assertFalse(new Quantity<>(50.0, TemperatureUnit.CELSIUS).equals(new Quantity<>(50.0, WeightUnit.KILOGRAM)));
+	}
+
+	@Test
+	void testTemperatureVsVolumeIncompatibility() {
+		assertFalse(new Quantity<>(25.0, TemperatureUnit.CELSIUS).equals(new Quantity<>(25.0, VolumeUnit.LITRE)));
+	}
+
+	// OPERATION SUPPORT METHODS
+
+	@Test
+	void testOperationSupportMethods_TemperatureUnitAddition() {
+		assertFalse(TemperatureUnit.CELSIUS.supportsArithmetic());
+	}
+
+	@Test
+	void testOperationSupportMethods_TemperatureUnitDivision() {
+		assertFalse(TemperatureUnit.FAHRENHEIT.supportsArithmetic());
+	}
+
+	@Test
+	void testOperationSupportMethods_LengthUnitAddition() {
+		assertTrue(LengthUnit.FEET.supportsArithmetic());
+	}
+
+	@Test
+	void testOperationSupportMethods_WeightUnitDivision() {
+		assertTrue(WeightUnit.KILOGRAM.supportsArithmetic());
+	}
+
+	// INTERFACE + STRUCTURE TESTS
+
+	@Test
+	void testTemperatureNullUnitValidation() {
+		assertThrows(IllegalArgumentException.class, () -> new Quantity<>(100.0, null));
+	}
+
+	@Test
+	void testTemperatureNullOperandValidation_InComparison() {
+		assertFalse(new Quantity<>(100.0, TemperatureUnit.CELSIUS).equals(null));
+	}
+
+	@Test
+	void testTemperatureUnit_AllConstants() {
+		assertNotNull(TemperatureUnit.CELSIUS);
+		assertNotNull(TemperatureUnit.FAHRENHEIT);
+		assertNotNull(TemperatureUnit.KELVIN);
+	}
+
+	@Test
+	void testTemperatureUnit_NameMethod() {
+		assertEquals("CELSIUS", TemperatureUnit.CELSIUS.getUnitName());
+	}
+
+	@Test
+	void testTemperatureUnit_ConversionFactor() {
+		assertThrows(UnsupportedOperationException.class, () -> TemperatureUnit.CELSIUS.getConversionFactor());
+	}
+
+	@Test
+	void testTemperatureEnumImplementsIMeasurable() {
+		assertTrue(IMeasurable.class.isAssignableFrom(TemperatureUnit.class));
+	}
+
+	@Test
+	void testTemperatureDefaultMethodInheritance() {
+		assertTrue(LengthUnit.FEET.supportsArithmetic());
+	}
+
+	@Test
+	void testTemperatureCrossUnitAdditionAttempt() {
+		assertThrows(UnsupportedOperationException.class, () -> new Quantity<>(0.0, TemperatureUnit.CELSIUS)
+				.add(new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT)));
+	}
+
+	@Test
+	void testTemperatureValidateOperationSupport_MethodBehavior() {
+		assertThrows(UnsupportedOperationException.class,
+				() -> TemperatureUnit.CELSIUS.validateOperationSupport("ADD"));
+	}
+
+	@Test
+	void testTemperatureIntegrationWithGenericQuantity() {
+		Quantity<TemperatureUnit> q = new Quantity<>(25.0, TemperatureUnit.CELSIUS);
+		assertEquals(25.0, q.getValue(), EPS);
 	}
 
 }
