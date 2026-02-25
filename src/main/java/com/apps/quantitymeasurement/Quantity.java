@@ -96,6 +96,65 @@ public class Quantity<U extends IMeasurable> {
 		return new Quantity<>(resultValue, targetUnit);
 	}
 
+	// ARITHMATIC OPERATIONS
+	
+	//SUBTRACTION
+	public Quantity<U> subtract(Quantity<U> other) {
+		validateOperand(other);
+		return subtract(other, this.unit);
+	}
+
+	//SUBTRACTION BY TARGETED UNIT
+	public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
+		validateOperand(other);
+
+		if (targetUnit == null) {
+			throw new IllegalArgumentException("Target unit cannot be null");
+		}
+
+		double baseThis = unit.convertToBaseUnit(this.value);
+		double baseOther = other.unit.convertToBaseUnit(other.value);
+
+		double baseResult = baseThis - baseOther;
+
+		double converted = targetUnit.convertFromBaseUnit(baseResult);
+
+		return new Quantity<>(roundToTwoDecimal(converted), targetUnit);
+	}
+
+	//DIVIDE
+	public double divide(Quantity<U> other) {
+		validateOperand(other);
+
+		double baseThis = unit.convertToBaseUnit(this.value);
+		double baseOther = other.unit.convertToBaseUnit(other.value);
+
+		if (Math.abs(baseOther) < EPSILON) {
+			throw new ArithmeticException("Cannot divide by zero quantity");
+		}
+
+		return baseThis / baseOther;
+	}
+
+	//METHOD TO VALIDATE OPERAND
+	private void validateOperand(Quantity<U> other) {
+		if (other == null) {
+			throw new IllegalArgumentException("Quantity cannot be null");
+		}
+
+		if (this.unit.getClass() != other.unit.getClass()) {
+			throw new IllegalArgumentException("Cross-category arithmetic not allowed");
+		}
+
+		if (!Double.isFinite(this.value) || !Double.isFinite(other.value)) {
+			throw new IllegalArgumentException("Values must be finite numbers");
+		}
+	}
+
+	//ROUND TO DECIMAL
+	private double roundToTwoDecimal(double value) {
+		return Math.round(value * 100.0) / 100.0;
+	}
 	// GETTERS
 
 	public double getValue() {
