@@ -71,9 +71,9 @@ public class Quantity<U extends IMeasurable> {
 	// Explicit target unit
 	public Quantity<U> add(Quantity<U> other, U targetUnit) {
 		validateArithmeticOperands(other, targetUnit, true);
-	    double baseResult = performBaseArithmetic(other, ArithmeticOperation.ADD);
-	    double resultValue = targetUnit.convertFromBaseUnit(baseResult);
-	    return new Quantity<>(roundToTwoDecimal(resultValue), targetUnit);
+		double baseResult = performBaseArithmetic(other, ArithmeticOperation.ADD);
+		double resultValue = targetUnit.convertFromBaseUnit(baseResult);
+		return new Quantity<>(roundToTwoDecimal(resultValue), targetUnit);
 	}
 
 	// ARITHMATIC OPERATIONS
@@ -86,9 +86,9 @@ public class Quantity<U extends IMeasurable> {
 	// SUBTRACTION BY TARGETED UNIT
 	public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
 		validateArithmeticOperands(other, targetUnit, true);
-	    double baseResult = performBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
-	    double converted = targetUnit.convertFromBaseUnit(baseResult);
-	    return new Quantity<>(roundToTwoDecimal(converted), targetUnit);
+		double baseResult = performBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
+		double converted = targetUnit.convertFromBaseUnit(baseResult);
+		return new Quantity<>(roundToTwoDecimal(converted), targetUnit);
 	}
 
 	// DIVIDE
@@ -98,6 +98,8 @@ public class Quantity<U extends IMeasurable> {
 	}
 
 	private double performBaseArithmetic(Quantity<U> other, ArithmeticOperation operation) {
+
+		this.unit.validateOperationSupport(operation.name());
 		double baseThis = this.toBaseUnit();
 		double baseOther = other.toBaseUnit();
 		return operation.compute(baseThis, baseOther);
