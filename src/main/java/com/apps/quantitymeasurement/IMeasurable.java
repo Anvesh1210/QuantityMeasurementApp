@@ -1,0 +1,13 @@
+package com.apps.quantitymeasurement;
+
+public interface IMeasurable {
+	double getConversionFactor();
+
+	// Convert value in this unit to base unit
+	double convertToBaseUnit(double value);
+
+	// Convert value from base unit to this unit
+	double convertFromBaseUnit(double baseValue);
+
+	String getUnitName();
+}
