@@ -31,5 +31,12 @@ public class QuantityMeasurementApp {
 		System.out.println("Weight Equality: " + demonstrateEquality(weight1, weight2));
 		System.out.println("Weight conversion: " + demonstrateConversion(weight1, WeightUnit.GRAM));
 		System.out.println("Weight Addition: " + demonstrateAddition(weight1, weight2, WeightUnit.KILOGRAM));
+		
+		// VOLUME
+		Quantity<VolumeUnit> volume1 = new Quantity<>(1.0, VolumeUnit.LITRE);
+		Quantity<VolumeUnit> volume2 = new Quantity<>(25.0, VolumeUnit.GALLON);
+		System.out.println("Volume Equality: " + demonstrateEquality(volume1, volume2));
+		System.out.println("Volume conversion: " + demonstrateConversion(volume1, VolumeUnit.MILLILITRE));
+		
 	}
 }
