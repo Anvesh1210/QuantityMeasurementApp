@@ -10,4 +10,16 @@ public interface IMeasurable {
 	double convertFromBaseUnit(double baseValue);
 
 	String getUnitName();
+
+	// By default, all units support arithmetic
+	SupportsArithmetic supportsArithmetic = () -> true;
+
+	default boolean supportsArithmetic() {
+		return supportsArithmetic.isSupported();
+	}
+
+	// Default: allow arithmetic
+	default void validateOperationSupport(String operation) {
+		// Do nothing (all units except temperature allow arithmetic)
+	}
 }
