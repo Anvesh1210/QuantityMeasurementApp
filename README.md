@@ -89,5 +89,5 @@ The following areas were validated through unit testing:
 UC1 establishes the foundation for reliable measurement comparison by ensuring accurate equality checks, safe handling of edge cases, and compliance with Java’s equality contract.
 
 ## Code Reference
-
-- Source Code: [View UC1 Implementation](https://github.com/Anvesh1210/QuantityMeasurementApp/tree/feature/UC1-FeetEquality/src)
+ 
+- Code: [View UC1 Implementation](https://github.com/Anvesh1210/QuantityMeasurementApp/tree/feature/UC1-FeetEquality/src)
