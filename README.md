@@ -1,5 +1,4 @@
 # QuantityMeasurementApp
-# Quantity Measurement App
 
 ## App Overview
 
