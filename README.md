@@ -26,3 +26,64 @@ While building this application:
 
 In enterprise projects, complete domain knowledge may not always be available initially. Therefore, it is important to implement only what is required at each stage and evolve the system step by step.
 
+---
+
+# UC1: Feet Measurement Equality
+
+## Description
+
+UC1 verifies equality between two numerical values measured in feet. It ensures accurate value-based comparison with proper handling of floating-point precision, null safety, and type safety.
+
+---
+
+## Preconditions
+
+- The application is initialized.
+- Two numerical values in feet are provided for comparison.
+
+---
+
+## Main Flow
+
+1. User inputs two numerical values in feet.
+2. The system validates that inputs are numeric.
+3. The two values are compared for equality.
+4. The result (`true` or `false`) is returned.
+
+---
+
+## Postconditions
+
+- Returns `true` if both values are equal.
+- Returns `false` if values differ.
+- Ensures safe handling of null and invalid comparisons.
+
+---
+
+## Concepts Covered
+
+- Object equality implementation  
+- Floating-point comparison using `Double.compare()`  
+- Null handling to prevent runtime exceptions  
+- Type safety during object comparison  
+- Encapsulation and immutability principles  
+
+---
+
+## Testing Aspects Covered
+
+The following areas were validated through unit testing:
+
+- Same value comparison  
+- Different value comparison  
+- Null comparison handling  
+- Type safety validation  
+- Reflexive property of equality  
+- Consistency of equality results  
+- Edge cases involving floating-point precision  
+
+---
+
+## Summary
+
+UC1 establishes the foundation for reliable measurement comparison by ensuring accurate equality checks, safe handling of edge cases, and compliance with Java’s equality contract.
