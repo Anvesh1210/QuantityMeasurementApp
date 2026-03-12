@@ -1,96 +1,63 @@
 package com.apps.quantitymeasurement;
 
-//main class
+import com.apps.quantitymeasurement.controller.QuantityMeasurementController;
+import com.apps.quantitymeasurement.dto.QuantityDTO;
+import com.apps.quantitymeasurement.repository.IQuantityMeasurementRepository;
+import com.apps.quantitymeasurement.repository.QuantityMeasurementCacheRepository;
+import com.apps.quantitymeasurement.service.IQuantityMeasurementService;
+import com.apps.quantitymeasurement.service.QuantityMeasurementServiceImpl;
+
 public class QuantityMeasurementApp {
-
-	public static <U extends IMeasurable> boolean demonstrateEquality(Quantity<U> q1, Quantity<U> q2) {
-		return q1.equals(q2);
-	}
-
-	public static <U extends IMeasurable> Quantity<U> demonstrateConversion(Quantity<U> quantity, U targetUnit) {
-		return quantity.convertTo(targetUnit);
-	}
-
-	public static <U extends IMeasurable> Quantity<U> demonstrateAddition(Quantity<U> q1, Quantity<U> q2,
-			U targetUnit) {
-		return q1.add(q2, targetUnit);
-	}
-
-	// Subtraction
-	public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(Quantity<U> q1, Quantity<U> q2,
-			U targetUnit) {
-		return q1.subtract(q2, targetUnit);
-	}
-
-	// Division
-	public static <U extends IMeasurable> double demonstrateDivision(Quantity<U> q1, Quantity<U> q2) {
-		return q1.divide(q2);
-	}
 
 	public static void main(String[] args) {
 
-		// LENGTH
-		Quantity<LengthUnit> length1 = new Quantity<>(1.0, LengthUnit.FEET);
-		Quantity<LengthUnit> length2 = new Quantity<>(12.0, LengthUnit.INCHES);
-		System.out.println("Length Equality: " + demonstrateEquality(length1, length2));
-		System.out.println("Length Conversion: " + demonstrateConversion(length1, LengthUnit.INCHES));
-		System.out.println("Length Addition: " + demonstrateAddition(length1, length2, LengthUnit.FEET));
-		System.out.println("Length Subtraction: " + demonstrateSubtraction(length1, length2, LengthUnit.FEET));
-		System.out.println("Length Division: " + demonstrateDivision(length1, length2));
+		// Step 1 : Create Repository
+		IQuantityMeasurementRepository repository = QuantityMeasurementCacheRepository.getInstance();
 
-		// WEIGHT
-		Quantity<WeightUnit> weight1 = new Quantity<>(1.0, WeightUnit.KILOGRAM);
-		Quantity<WeightUnit> weight2 = new Quantity<>(1000.0, WeightUnit.GRAM);
-		System.out.println("\nWeight Equality: " + demonstrateEquality(weight1, weight2));
-		System.out.println("Weight conversion: " + demonstrateConversion(weight1, WeightUnit.GRAM));
-		System.out.println("Weight Addition: " + demonstrateAddition(weight1, weight2, WeightUnit.KILOGRAM));
-		System.out.println("Weight Subtraction: " + demonstrateSubtraction(weight1, weight2, WeightUnit.KILOGRAM));
-		System.out.println("Weight Division: " + demonstrateDivision(weight1, weight2));
+		// Step 2 : Create Service
+		IQuantityMeasurementService service = new QuantityMeasurementServiceImpl(repository);
 
-		// VOLUME
-		Quantity<VolumeUnit> volume1 = new Quantity<>(1.0, VolumeUnit.LITRE);
-		Quantity<VolumeUnit> volume2 = new Quantity<>(25.0, VolumeUnit.GALLON);
-		System.out.println("\nVolume Equality: " + demonstrateEquality(volume1, volume2));
-		System.out.println("Volume conversion: " + demonstrateConversion(volume1, VolumeUnit.MILLILITRE));
-		System.out.println("Volume Subtraction: " + demonstrateSubtraction(volume1, volume2, VolumeUnit.LITRE));
-		System.out.println("Volume Division: " + demonstrateDivision(volume1, volume2));
+		// Step 3 : Create Controller
+		QuantityMeasurementController controller = new QuantityMeasurementController(service);
 
-		// TEMPERATURE (UC14)
-		// =========================
-		System.out.println("\n===== TEMPERATURE =====");
+		// 1️⃣ Comparison Example
+		QuantityDTO feet = new QuantityDTO(1, "FEET", "LENGTH");
+		QuantityDTO inches = new QuantityDTO(12, "INCHES", "LENGTH");
 
-		Quantity<TemperatureUnit> temp1 = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
-		Quantity<TemperatureUnit> temp2 = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
+		boolean comparison = controller.performComparison(feet, inches);
 
-		System.out.println("Temperature Equality (0C == 32F): " + demonstrateEquality(temp1, temp2));
+		System.out.println("1 FOOT == 12 INCH : " + comparison);
 
-		System.out.println("Convert 100C to F: "
-				+ demonstrateConversion(new Quantity<>(100.0, TemperatureUnit.CELSIUS), TemperatureUnit.FAHRENHEIT));
+		// 2️⃣ Conversion Example
+		QuantityDTO meter = new QuantityDTO(1, "METERS", "LENGTH");
+		QuantityDTO centimeter = new QuantityDTO(0, "CENTIMETERS", "LENGTH");
 
-		System.out.println("Convert 273.15K to C: "
-				+ demonstrateConversion(new Quantity<>(273.15, TemperatureUnit.KELVIN), TemperatureUnit.CELSIUS));
+		QuantityDTO converted = controller.performConversion(meter, centimeter);
 
-		System.out.println("Convert -40C to F: "
-				+ demonstrateConversion(new Quantity<>(-40.0, TemperatureUnit.CELSIUS), TemperatureUnit.FAHRENHEIT));
+		System.out.println("1 METER = " + converted.getValue() + " " + converted.getUnit());
 
-		// Unsupported Operations Demo
-		try {
-			demonstrateAddition(temp1, temp2, TemperatureUnit.CELSIUS);
-		} catch (UnsupportedOperationException e) {
-			System.out.println("Addition Error: " + e.getMessage());
-		}
+		// 3️⃣ Addition Example
+		QuantityDTO foot = new QuantityDTO(1, "FEET", "LENGTH");
+		QuantityDTO inch = new QuantityDTO(12, "INCHES", "LENGTH");
 
-		try {
-			demonstrateSubtraction(temp1, temp2, TemperatureUnit.CELSIUS);
-		} catch (UnsupportedOperationException e) {
-			System.out.println("Subtraction Error: " + e.getMessage());
-		}
+		QuantityDTO addition = controller.performAddition(foot, inch);
 
-		try {
-			demonstrateDivision(temp1, temp2);
-		} catch (UnsupportedOperationException e) {
-			System.out.println("Division Error: " + e.getMessage());
-		}
+		System.out.println("Addition Result : " + addition.getValue() + " " + addition.getUnit());
 
+		// 4️⃣ Division Example
+		QuantityDTO weight1 = new QuantityDTO(10, "KILOGRAM", "WEIGHT");
+		QuantityDTO weight2 = new QuantityDTO(5, "KILOGRAM", "WEIGHT");
+
+		QuantityDTO division = controller.performDivision(weight1, weight2);
+
+		System.out.println("Division Result : " + division.getValue());
+
+		// 5️⃣ Temperature comparison example
+		QuantityDTO celsius = new QuantityDTO(0, "CELSIUS", "TEMPERATURE");
+		QuantityDTO fahrenheit = new QuantityDTO(32, "FAHRENHEIT", "TEMPERATURE");
+
+		boolean tempComparison = controller.performComparison(celsius, fahrenheit);
+
+		System.out.println("0C == 32F : " + tempComparison);
 	}
 }
