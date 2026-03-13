@@ -1,6 +1,6 @@
 package com.apps.quantitymeasurement.service;
 
-import com.apps.quantitymeasurement.dto.QuantityDTO;
+import com.apps.quantitymeasurement.entity.QuantityDTO;
 
 public interface IQuantityMeasurementService {
 	// Comparison - Compare two quantities

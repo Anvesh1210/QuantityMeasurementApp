@@ -1,6 +1,6 @@
 package com.apps.quantitymeasurement.controller;
 
-import com.apps.quantitymeasurement.dto.QuantityDTO;
+import com.apps.quantitymeasurement.entity.QuantityDTO;
 import com.apps.quantitymeasurement.service.IQuantityMeasurementService;
 
 public class QuantityMeasurementController {

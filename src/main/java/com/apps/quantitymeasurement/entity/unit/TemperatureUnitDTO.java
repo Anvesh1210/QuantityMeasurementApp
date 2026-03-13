@@ -1,6 +1,6 @@
-package com.apps.quantitymeasurement.dto.unit;
+package com.apps.quantitymeasurement.entity.unit;
 
-import com.apps.quantitymeasurement.dto.IMeasurableUnit;
+import com.apps.quantitymeasurement.entity.IMeasurableUnit;
 
 public enum TemperatureUnitDTO implements IMeasurableUnit {
 	CELSIUS, FAHRENHEIT, KELVIN;

@@ -1,4 +1,4 @@
-package com.apps.quantitymeasurement.dto;
+package com.apps.quantitymeasurement.entity;
 
 public interface IMeasurableUnit {
 	public String getUnitName();
