@@ -11,53 +11,43 @@ public class QuantityMeasurementApp {
 
 	public static void main(String[] args) {
 
-		// Step 1 : Create Repository
+		// Create Repository
 		IQuantityMeasurementRepository repository = QuantityMeasurementCacheRepository.getInstance();
 
-		// Step 2 : Create Service
+		// Create Service
 		IQuantityMeasurementService service = new QuantityMeasurementServiceImpl(repository);
 
-		// Step 3 : Create Controller
+		// Create Controller
 		QuantityMeasurementController controller = new QuantityMeasurementController(service);
 
-		// 1️⃣ Comparison Example
+		// Comparison
 		QuantityDTO feet = new QuantityDTO(1, "FEET", "LENGTH");
 		QuantityDTO inches = new QuantityDTO(12, "INCHES", "LENGTH");
-
 		boolean comparison = controller.performComparison(feet, inches);
-
 		System.out.println("1 FOOT == 12 INCH : " + comparison);
 
-		// 2️⃣ Conversion Example
+		// Conversion
 		QuantityDTO meter = new QuantityDTO(1, "METERS", "LENGTH");
 		QuantityDTO centimeter = new QuantityDTO(0, "CENTIMETERS", "LENGTH");
-
 		QuantityDTO converted = controller.performConversion(meter, centimeter);
-
 		System.out.println("1 METER = " + converted.getValue() + " " + converted.getUnit());
 
-		// 3️⃣ Addition Example
+		// Addition
 		QuantityDTO foot = new QuantityDTO(1, "FEET", "LENGTH");
 		QuantityDTO inch = new QuantityDTO(12, "INCHES", "LENGTH");
-
 		QuantityDTO addition = controller.performAddition(foot, inch);
-
 		System.out.println("Addition Result : " + addition.getValue() + " " + addition.getUnit());
 
-		// 4️⃣ Division Example
+		// Division
 		QuantityDTO weight1 = new QuantityDTO(10, "KILOGRAM", "WEIGHT");
 		QuantityDTO weight2 = new QuantityDTO(5, "KILOGRAM", "WEIGHT");
-
 		QuantityDTO division = controller.performDivision(weight1, weight2);
-
 		System.out.println("Division Result : " + division.getValue());
 
-		// 5️⃣ Temperature comparison example
+		// Temperature comparison
 		QuantityDTO celsius = new QuantityDTO(0, "CELSIUS", "TEMPERATURE");
 		QuantityDTO fahrenheit = new QuantityDTO(32, "FAHRENHEIT", "TEMPERATURE");
-
 		boolean tempComparison = controller.performComparison(celsius, fahrenheit);
-
 		System.out.println("0C == 32F : " + tempComparison);
 	}
 }
