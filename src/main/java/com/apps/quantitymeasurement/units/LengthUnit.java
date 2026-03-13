@@ -1,7 +1,5 @@
 package com.apps.quantitymeasurement.units;
 
-import com.apps.quantitymeasurement.core.IMeasurable;
-
 public enum LengthUnit implements IMeasurable {
 	FEET(1.0), // base unit
 	INCHES(1.0 / 12.0), YARDS(3.0), CENTIMETERS(1.0 / 30.48),METERS(3.28084);

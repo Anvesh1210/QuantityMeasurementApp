@@ -2,7 +2,7 @@ package com.apps.quantitymeasurement.entity;
 
 import java.io.Serializable;
 
-import com.apps.quantitymeasurement.core.IMeasurable;
+import com.apps.quantitymeasurement.units.IMeasurable;
 
 public class QuantityMeasurementEntity implements Serializable {
 	public static final long serialVersionUID = 1;

@@ -1,4 +1,6 @@
-package com.apps.quantitymeasurement.core;
+package com.apps.quantitymeasurement.units;
+
+import com.apps.quantitymeasurement.core.SupportsArithmetic;
 
 public interface IMeasurable {
 	double getConversionFactor();

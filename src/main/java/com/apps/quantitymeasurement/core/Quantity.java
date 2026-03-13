@@ -2,6 +2,8 @@ package com.apps.quantitymeasurement.core;
 
 import java.util.Objects;
 
+import com.apps.quantitymeasurement.units.IMeasurable;
+
 public class Quantity<U extends IMeasurable> {
 	private final double value;
 	private final U unit;

@@ -2,7 +2,6 @@ package com.apps.quantitymeasurement.units;
 
 import java.util.function.Function;
 
-import com.apps.quantitymeasurement.core.IMeasurable;
 import com.apps.quantitymeasurement.core.SupportsArithmetic;
 
 public enum TemperatureUnit implements IMeasurable {

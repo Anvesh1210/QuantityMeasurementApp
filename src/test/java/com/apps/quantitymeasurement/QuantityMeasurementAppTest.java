@@ -6,12 +6,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.apps.quantitymeasurement.controller.QuantityMeasurementController;
-import com.apps.quantitymeasurement.core.IMeasurable;
 import com.apps.quantitymeasurement.entity.QuantityDTO;
 import com.apps.quantitymeasurement.entity.QuantityMeasurementEntity;
 import com.apps.quantitymeasurement.entity.QuantityModel;
 import com.apps.quantitymeasurement.repository.QuantityMeasurementCacheRepository;
 import com.apps.quantitymeasurement.service.QuantityMeasurementServiceImpl;
+import com.apps.quantitymeasurement.units.IMeasurable;
 import com.apps.quantitymeasurement.units.LengthUnit;
 import com.apps.quantitymeasurement.units.TemperatureUnit;
 import com.apps.quantitymeasurement.units.WeightUnit;
