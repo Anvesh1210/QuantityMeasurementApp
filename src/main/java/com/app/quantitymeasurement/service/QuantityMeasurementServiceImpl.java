@@ -1,10 +1,10 @@
 package com.app.quantitymeasurement.service;
 
 import com.app.quantitymeasurement.core.Quantity;
-import com.app.quantitymeasurement.entity.QuantityDTO;
-import com.app.quantitymeasurement.entity.QuantityMeasurementEntity;
-import com.app.quantitymeasurement.entity.QuantityModel;
 import com.app.quantitymeasurement.exception.QuantityMeasurementException;
+import com.app.quantitymeasurement.model.QuantityDTO;
+import com.app.quantitymeasurement.model.QuantityMeasurementEntity;
+import com.app.quantitymeasurement.model.QuantityModel;
 import com.app.quantitymeasurement.repository.IQuantityMeasurementRepository;
 import com.app.quantitymeasurement.units.IMeasurable;
 import com.app.quantitymeasurement.units.LengthUnit;

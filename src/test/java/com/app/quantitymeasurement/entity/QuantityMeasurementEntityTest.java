@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import com.app.quantitymeasurement.model.QuantityMeasurementEntity;
+import com.app.quantitymeasurement.model.QuantityModel;
 import com.app.quantitymeasurement.units.IMeasurable;
 import com.app.quantitymeasurement.units.LengthUnit;
 

@@ -1,6 +1,6 @@
-package com.app.quantitymeasurement.entity.unit;
+package com.app.quantitymeasurement.model.unit;
 
-import com.app.quantitymeasurement.entity.IMeasurableUnit;
+import com.app.quantitymeasurement.model.IMeasurableUnit;
 
 public enum WeightUnitDTO implements IMeasurableUnit {
 	KILOGRAM, GRAM, POUND;

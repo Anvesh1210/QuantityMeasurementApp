@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.app.quantitymeasurement.entity.QuantityDTO;
+import com.app.quantitymeasurement.model.QuantityDTO;
 import com.app.quantitymeasurement.repository.IQuantityMeasurementRepository;
 
 public class QuantityMeasurementServiceTest {
