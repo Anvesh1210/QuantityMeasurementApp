@@ -3,11 +3,11 @@ package com.app.quantitymeasurement.exception;
 public class DatabaseException extends QuantityMeasurementException {
 
     public DatabaseException(String message) {
-        super(message);
+        super(message, "DB_ERROR");
     }
 
     public DatabaseException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, "DB_ERROR", cause);
     }
 
     public static DatabaseException connectionFailed(String details, Throwable cause) {

@@ -1,24 +1,33 @@
 package com.app.quantitymeasurement.service;
 
-import com.app.quantitymeasurement.model.QuantityDTO;
+import java.util.List;
+
+import com.app.quantitymeasurement.dto.QuantityDTO;
+import com.app.quantitymeasurement.dto.QuantityMeasurementDTO;
 
 public interface IQuantityMeasurementService {
-	// Comparison - Compare two quantities
-	public boolean compare(QuantityDTO thiQuantityDTO, QuantityDTO thatQuantityDTO);
 
-	// Conversion - Convert quantities from one unit to another
-	public QuantityDTO convert(QuantityDTO thiQuantityDTO, QuantityDTO thatQuantityDTO);
+    // CORE OPERATIONS
+    QuantityMeasurementDTO compare(QuantityDTO thisDTO, QuantityDTO thatDTO);
 
-	// Addition - Add two quantities
-	public QuantityDTO add(QuantityDTO thiQuantityDTO, QuantityDTO thatQuantityDTO);
+    QuantityMeasurementDTO convert(QuantityDTO thisDTO, QuantityDTO thatDTO);
 
-	public QuantityDTO add(QuantityDTO thiQuantityDTO, QuantityDTO thatQuantityDTO, QuantityDTO targetUnitDTO);
+    QuantityMeasurementDTO add(QuantityDTO thisDTO, QuantityDTO thatDTO);
 
-	// Subtraction - Subtract one quantity from another
-	public QuantityDTO subtarct(QuantityDTO thiQuantityDTO, QuantityDTO thatQuantityDTO);
+    QuantityMeasurementDTO add(QuantityDTO thisDTO, QuantityDTO thatDTO, QuantityDTO targetUnitDTO);
 
-	public QuantityDTO subtarct(QuantityDTO thiQuantityDTO, QuantityDTO thatQuantityDTO, QuantityDTO targetUnitDTO);
+    QuantityMeasurementDTO subtract(QuantityDTO thisDTO, QuantityDTO thatDTO);
 
-	// Division - Divide quantities
-	public QuantityDTO division(QuantityDTO thiQuantityDTO, QuantityDTO thatQuantityDTO);
+    QuantityMeasurementDTO subtract(QuantityDTO thisDTO, QuantityDTO thatDTO, QuantityDTO targetUnitDTO);
+
+    QuantityMeasurementDTO divide(QuantityDTO thisDTO, QuantityDTO thatDTO);
+
+    // HISTORY APIs
+    List<QuantityMeasurementDTO> getOperationHistory(String operation);
+
+    List<QuantityMeasurementDTO> getMeasurementsByType(String type);
+
+    long getOperationCount(String operation);
+
+    List<QuantityMeasurementDTO> getErrorHistory();
 }
