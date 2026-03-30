@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -50,6 +51,16 @@ public class GlobalExceptionHandler {
 				.message(ex.getMessage()).path(request.getDescription(false).replace("uri=", "")).build();
 
 		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	// Authentication Exception
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+		ErrorResponse response = ErrorResponse.builder().timestamp(LocalDateTime.now())
+				.status(HttpStatus.UNAUTHORIZED.value()).error("Authentication Error").errorCode("AUTH_FAILED")
+				.message("Invalid credentials").path(request.getDescription(false).replace("uri=", "")).build();
+
+		return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 	}
 
 	// Generic Exception

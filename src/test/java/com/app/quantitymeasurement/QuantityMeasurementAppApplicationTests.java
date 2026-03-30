@@ -4,6 +4,7 @@ import com.app.quantitymeasurement.dto.QuantityDTO;
 import com.app.quantitymeasurement.dto.QuantityInputDTO;
 import com.app.quantitymeasurement.dto.QuantityMeasurementDTO;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,6 +26,8 @@ public class QuantityMeasurementAppApplicationTests {
 
 	@Autowired
 	private TestRestTemplate restTemplate;
+
+	private String bearerToken;
 
 	// ------------------ HELPERS ------------------
 
@@ -51,7 +55,36 @@ public class QuantityMeasurementAppApplicationTests {
 	private HttpEntity<QuantityInputDTO> jsonEntity(QuantityInputDTO body) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set(HttpHeaders.AUTHORIZATION, bearerToken);
 		return new HttpEntity<>(body, headers);
+	}
+
+	private HttpEntity<Void> authorizedEntity() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.AUTHORIZATION, bearerToken);
+		return new HttpEntity<>(headers);
+	}
+
+	@BeforeEach
+	void authenticate() {
+		if (bearerToken != null) {
+			return;
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<Map<String, String>> loginPayload = new HttpEntity<>(
+				Map.of("username", "appuser", "password", "password123"), headers);
+
+		ResponseEntity<Map> loginResponse = restTemplate.postForEntity("http://localhost:" + port + "/api/v1/auth/login",
+				loginPayload, Map.class);
+
+		assertThat(loginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(loginResponse.getBody()).isNotNull();
+		assertThat(loginResponse.getBody().get("accessToken")).isNotNull();
+
+		bearerToken = "Bearer " + loginResponse.getBody().get("accessToken").toString();
 	}
 
 	// ------------------ TESTS ------------------
@@ -63,10 +96,24 @@ public class QuantityMeasurementAppApplicationTests {
 		assertThat(port).isGreaterThan(0);
 	}
 
+	@Test
+	@Order(2)
+	void testProtectedEndpointWithoutToken_Unauthorized() {
+		QuantityInputDTO body = input(1, "FEET", "LengthUnit", 12, "INCHES", "LengthUnit");
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/compare", new HttpEntity<>(body, headers),
+				String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
 	// ---------- COMPARE ----------
 
 	@Test
-	@Order(2)
+	@Order(3)
 	void testCompare_FootEqualsInches() {
 		QuantityInputDTO body = input(1, "FEET", "LengthUnit", 12, "INCHES", "LengthUnit");
 
@@ -78,7 +125,7 @@ public class QuantityMeasurementAppApplicationTests {
 	}
 
 	@Test
-	@Order(3)
+	@Order(4)
 	void testCompare_FootNotEqualInch() {
 		QuantityInputDTO body = input(1, "FEET", "LengthUnit", 1, "INCHES", "LengthUnit");
 
@@ -92,7 +139,7 @@ public class QuantityMeasurementAppApplicationTests {
 	// ---------- CONVERT ----------
 
 	@Test
-	@Order(4)
+	@Order(5)
 	void testConvert_CelsiusToFahrenheit() {
 		QuantityInputDTO body = input(100, "CELSIUS", "TemperatureUnit", 0, "FAHRENHEIT", "TemperatureUnit");
 
@@ -106,7 +153,7 @@ public class QuantityMeasurementAppApplicationTests {
 	// ---------- ADD ----------
 
 	@Test
-	@Order(5)
+	@Order(6)
 	void testAdd_GallonAndLitre() {
 		QuantityInputDTO body = input(1, "GALLON", "VolumeUnit", 3.785, "LITRE", "VolumeUnit");
 
@@ -120,7 +167,7 @@ public class QuantityMeasurementAppApplicationTests {
 	// ---------- ADD WITH TARGET ----------
 
 	@Test
-	@Order(6)
+	@Order(7)
 	void testAddWithTarget() {
 		QuantityInputDTO body = inputWithTarget(1, "FEET", "LengthUnit", 12, "INCHES", "LengthUnit", 0, "INCHES",
 				"LengthUnit");
@@ -135,7 +182,7 @@ public class QuantityMeasurementAppApplicationTests {
 	// ---------- SUBTRACT ----------
 
 	@Test
-	@Order(7)
+	@Order(8)
 	void testSubtract() {
 		QuantityInputDTO body = input(2, "FEET", "LengthUnit", 12, "INCHES", "LengthUnit");
 
@@ -149,7 +196,7 @@ public class QuantityMeasurementAppApplicationTests {
 	// ---------- DIVIDE ----------
 
 	@Test
-	@Order(8)
+	@Order(9)
 	void testDivide() {
 		QuantityInputDTO body = input(1, "YARDS", "LengthUnit", 1, "FEET", "LengthUnit");
 
@@ -163,9 +210,10 @@ public class QuantityMeasurementAppApplicationTests {
 	// ---------- HISTORY ----------
 
 	@Test
-	@Order(9)
+	@Order(10)
 	void testHistory() {
-		ResponseEntity<List> response = restTemplate.getForEntity(baseUrl() + "/history/operation/COMPARE", List.class);
+		ResponseEntity<List> response = restTemplate.exchange(baseUrl() + "/history/operation/COMPARE", HttpMethod.GET,
+				authorizedEntity(), List.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isNotEmpty();
@@ -174,7 +222,7 @@ public class QuantityMeasurementAppApplicationTests {
 	// ---------- ERROR ----------
 
 	@Test
-	@Order(10)
+	@Order(11)
 	void testDivideByZero_Error() {
 		QuantityInputDTO body = input(1, "YARDS", "LengthUnit", 0, "FEET", "LengthUnit");
 

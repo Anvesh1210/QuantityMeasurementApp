@@ -28,6 +28,54 @@ In enterprise projects, complete domain knowledge may not always be available in
 
 ---
 
+## Security (JWT + Google OAuth2)
+
+The app now protects all `/api/v1/quantities/**` endpoints with Spring Security.
+Access requires an authenticated token with role `USER` or `ADMIN`.
+
+### JWT Login
+
+- Endpoint: `POST /api/v1/auth/login`
+- Request:
+  ```json
+  {
+    "username": "appuser",
+    "password": "password123"
+  }
+  ```
+- Response returns `accessToken` (JWT). Use it as:
+  `Authorization: Bearer <accessToken>`
+
+Default development credentials are configured in `application.properties`:
+
+- `app.auth.username=appuser`
+- `app.auth.password=password123`
+
+### Google OAuth2 Login
+
+Set Google client credentials (recommended via environment variables):
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+Then configure these properties (currently commented in `application.properties`):
+
+- `spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID}`
+- `spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET}`
+- `spring.security.oauth2.client.registration.google.scope=openid,profile,email`
+
+Start login from:
+
+- `/oauth2/authorization/google`
+
+On successful login, the app redirects to:
+
+- `app.oauth2.authorized-redirect-uri`
+
+with a JWT token in the query parameter `token`.
+
+---
+
 
 # UC14: Temperature Measurement with Selective Arithmetic Support
 

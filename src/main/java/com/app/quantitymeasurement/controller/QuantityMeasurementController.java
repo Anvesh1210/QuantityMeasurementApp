@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,16 +16,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping("/api/v1/quantities")
 @Tag(name = "Quantity Measurements", description = "Operations related to quantity calculations")
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
 public class QuantityMeasurementController {
 
     @Autowired
     private IQuantityMeasurementService quantityMeasurementService;
 
-    // ===================== COMPARE =====================
+    // COMPARE
     @Operation(summary = "Compare two quantities", description = "Returns true if both quantities are equal")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Comparison successful"),
@@ -44,7 +48,7 @@ public class QuantityMeasurementController {
         }
     }
 
-    // ===================== CONVERT =====================
+    //CONVERT
     @Operation(summary = "Convert quantity", description = "Converts one quantity into another unit")
     @PostMapping("/convert")
     public ResponseEntity<?> performConversion(@Valid @RequestBody QuantityInputDTO input) {
@@ -60,7 +64,7 @@ public class QuantityMeasurementController {
         }
     }
 
-    // ===================== ADD =====================
+    // ADD
     @Operation(summary = "Add two quantities", description = "Adds two quantities")
     @PostMapping("/add")
     public ResponseEntity<?> performAddition(@Valid @RequestBody QuantityInputDTO input) {
@@ -76,7 +80,7 @@ public class QuantityMeasurementController {
         }
     }
 
-    // ===================== ADD WITH TARGET =====================
+    //ADD WITH TARGET 
     @Operation(summary = "Add with target unit", description = "Adds two quantities and converts result to target unit")
     @PostMapping("/add-with-target-unit")
     public ResponseEntity<?> performAdditionWithTargetUnit(@Valid @RequestBody QuantityInputDTO input) {
@@ -93,7 +97,7 @@ public class QuantityMeasurementController {
         }
     }
 
-    // ===================== SUBTRACT =====================
+    // SUBTRACT
     @Operation(summary = "Subtract two quantities", description = "Subtracts second quantity from first")
     @PostMapping("/subtract")
     public ResponseEntity<?> performSubtraction(@Valid @RequestBody QuantityInputDTO input) {
@@ -109,7 +113,7 @@ public class QuantityMeasurementController {
         }
     }
 
-    // ===================== SUBTRACT WITH TARGET =====================
+    // SUBTRACT WITH TARGET
     @Operation(summary = "Subtract with target unit", description = "Subtract and convert result to target unit")
     @PostMapping("/subtract-with-target-unit")
     public ResponseEntity<?> performSubtractionWithTargetUnit(@Valid @RequestBody QuantityInputDTO input) {
@@ -126,7 +130,7 @@ public class QuantityMeasurementController {
         }
     }
 
-    // ===================== DIVIDE =====================
+    // DIVIDE 
     @Operation(summary = "Divide quantities", description = "Divides first quantity by second")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Division successful"),
@@ -146,7 +150,7 @@ public class QuantityMeasurementController {
         }
     }
 
-    // ===================== HISTORY =====================
+    // HISTORY 
     @Operation(summary = "Get operation history")
     @GetMapping("/history/operation/{operation}")
     public ResponseEntity<List<QuantityMeasurementDTO>> getOperationHistory(@PathVariable String operation) {
