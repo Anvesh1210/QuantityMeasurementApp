@@ -35,11 +35,23 @@ Access requires an authenticated token with role `USER` or `ADMIN`.
 
 ### JWT Login
 
+- Registration endpoint: `POST /api/v1/auth/register`
+- Registration request:
+  ```json
+  {
+    "name": "New User",
+    "email": "newuser@example.com",
+    "password": "Password@123",
+    "mobileNumber": "+15555550111"
+  }
+  ```
+- Registration response returns `accessToken` (JWT) with HTTP `201 Created`.
+
 - Endpoint: `POST /api/v1/auth/login`
 - Request:
   ```json
   {
-    "username": "appuser",
+    "email": "appuser@example.com",
     "password": "password123"
   }
   ```
@@ -48,8 +60,10 @@ Access requires an authenticated token with role `USER` or `ADMIN`.
 
 Default development credentials are configured in `application.properties`:
 
-- `app.auth.username=appuser`
+- `app.auth.name=App User`
+- `app.auth.email=appuser@example.com`
 - `app.auth.password=password123`
+- `app.auth.mobile-number=+15555550123`
 
 ### Google OAuth2 Login
 

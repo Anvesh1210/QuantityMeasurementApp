@@ -1,20 +1,13 @@
 package com.app.quantitymeasurement.dto;
 
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.logging.Logger;
-
-@Data
 @Schema(description = "A quantity with a value and unit")
 public class QuantityDTO {
-
-    // Logger
-    private static final Logger logger = Logger.getLogger(QuantityDTO.class.getName());
 
     // INNER INTERFACE
     public interface IMeasurableUnit {
@@ -22,17 +15,16 @@ public class QuantityDTO {
         String getMeasurementType();
     }
 
-    // ENUMS INSIDE DTO (IMPORTANT)
-
+    // ENUMS INSIDE DTO
     public enum LengthUnit implements IMeasurableUnit {
-        FEET, INCHES, YARDS, CENTIMETERS;
+        FEET, INCHES, YARDS, CENTIMETERS, METERS;
 
         public String getUnitName() {
             return this.name();
         }
 
         public String getMeasurementType() {
-            return "LengthUnit";
+            return "LENGTH";
         }
     }
 
@@ -44,7 +36,7 @@ public class QuantityDTO {
         }
 
         public String getMeasurementType() {
-            return "VolumeUnit";
+            return "VOLUME";
         }
     }
 
@@ -56,42 +48,40 @@ public class QuantityDTO {
         }
 
         public String getMeasurementType() {
-            return "WeightUnit";
+            return "WEIGHT";
         }
     }
 
     public enum TemperatureUnit implements IMeasurableUnit {
-        CELSIUS, FAHRENHEIT;
+        CELSIUS, FAHRENHEIT, KELVIN;
 
         public String getUnitName() {
             return this.name();
         }
 
         public String getMeasurementType() {
-            return "TemperatureUnit";
+            return "TEMPERATURE";
         }
     }
 
-    //FIELDS
+    // FIELDS
 
-    @NotNull(message = "Value cannot be empty")
     @Schema(example = "1.0")
-    public double value;
+    private double value;
 
-    @NotNull(message = "Unit cannot be null")
+    @NotBlank(message = "Unit cannot be blank")
     @Schema(example = "FEET")
-    public String unit;
+    private String unit;
 
-    @NotNull(message = "Measurement type cannot be null")
+    @NotBlank(message = "Measurement type cannot be blank")
     @Pattern(
-            regexp = "LengthUnit|VolumeUnit|WeightUnit|TemperatureUnit",
+            regexp = "(?i)LengthUnit|VolumeUnit|WeightUnit|TemperatureUnit|LENGTH|VOLUME|WEIGHT|TEMPERATURE",
             message = "Invalid measurement type"
     )
-    @Schema(example = "LengthUnit")
-    public String measurementType;
-    
-    //CONSTRUCTORS
-    
+    @Schema(example = "LENGTH")
+    private String measurementType;
+
+    // CONSTRUCTORS
     public QuantityDTO() {}
 
     public QuantityDTO(double value, IMeasurableUnit unit) {
@@ -105,32 +95,79 @@ public class QuantityDTO {
         this.unit = unit;
         this.measurementType = measurementType;
     }
-    
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getMeasurementType() {
+        return measurementType;
+    }
+
+    public void setMeasurementType(String measurementType) {
+        this.measurementType = measurementType;
+    }
+
+    public static String normalizeMeasurementType(String rawMeasurementType) {
+        if (rawMeasurementType == null) {
+            return null;
+        }
+
+        String normalized = rawMeasurementType.trim().toUpperCase();
+        return switch (normalized) {
+        case "LENGTH", "LENGTHUNIT" -> "LENGTH";
+        case "VOLUME", "VOLUMEUNIT" -> "VOLUME";
+        case "WEIGHT", "WEIGHTUNIT" -> "WEIGHT";
+        case "TEMPERATURE", "TEMPERATUREUNIT" -> "TEMPERATURE";
+        default -> null;
+        };
+    }
+
     // VALIDATION LOGIC
-    
+
+    @AssertTrue(message = "Value must be a finite number")
+    public boolean isFiniteValue() {
+        return Double.isFinite(value);
+    }
+
     @AssertTrue(message = "Unit must be valid for the specified measurement type")
     public boolean isValidUnit() {
+        String normalizedType = normalizeMeasurementType(measurementType);
+        if (normalizedType == null || unit == null || unit.isBlank()) {
+            return false;
+        }
 
-        logger.info("Validating unit: " + unit +
-                " for measurement type: " + measurementType);
+        String normalizedUnit = unit.trim().toUpperCase();
 
         try {
-            switch (measurementType) {
+            switch (normalizedType) {
 
-                case "LengthUnit":
-                    LengthUnit.valueOf(unit);
+                case "LENGTH":
+                    LengthUnit.valueOf(normalizedUnit);
                     break;
 
-                case "VolumeUnit":
-                    VolumeUnit.valueOf(unit);
+                case "VOLUME":
+                    VolumeUnit.valueOf(normalizedUnit);
                     break;
 
-                case "WeightUnit":
-                    WeightUnit.valueOf(unit);
+                case "WEIGHT":
+                    WeightUnit.valueOf(normalizedUnit);
                     break;
 
-                case "TemperatureUnit":
-                    TemperatureUnit.valueOf(unit);
+                case "TEMPERATURE":
+                    TemperatureUnit.valueOf(normalizedUnit);
                     break;
 
                 default:

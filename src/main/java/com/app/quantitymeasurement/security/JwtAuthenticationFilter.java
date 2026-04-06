@@ -32,19 +32,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		if (SecurityContextHolder.getContext().getAuthentication() != null) {
-			filterChain.doFilter(request, response);
-			return;
-		}
-
 		String jwtToken = authorizationHeader.substring(7);
 		if (!jwtService.isTokenValid(jwtToken)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		String username = jwtService.extractUsername(jwtToken);
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null,
+		// Prefer explicit bearer token auth over any session-populated authentication.
+		String subject = jwtService.extractSubject(jwtToken);
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(subject, null,
 				jwtService.extractAuthorities(jwtToken));
 		authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 		SecurityContextHolder.getContext().setAuthentication(authentication);

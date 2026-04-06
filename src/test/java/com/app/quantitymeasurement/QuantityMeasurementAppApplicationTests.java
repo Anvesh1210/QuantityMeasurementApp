@@ -75,7 +75,7 @@ public class QuantityMeasurementAppApplicationTests {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<Map<String, String>> loginPayload = new HttpEntity<>(
-				Map.of("username", "appuser", "password", "password123"), headers);
+				Map.of("email", "appuser@example.com", "password", "password123"), headers);
 
 		ResponseEntity<Map> loginResponse = restTemplate.postForEntity("http://localhost:" + port + "/api/v1/auth/login",
 				loginPayload, Map.class);
@@ -99,13 +99,8 @@ public class QuantityMeasurementAppApplicationTests {
 	@Test
 	@Order(2)
 	void testProtectedEndpointWithoutToken_Unauthorized() {
-		QuantityInputDTO body = input(1, "FEET", "LengthUnit", 12, "INCHES", "LengthUnit");
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-
-		ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/compare", new HttpEntity<>(body, headers),
-				String.class);
+		ResponseEntity<String> response = restTemplate.exchange(baseUrl() + "/count/COMPARE", HttpMethod.GET,
+				HttpEntity.EMPTY, String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
@@ -229,7 +224,7 @@ public class QuantityMeasurementAppApplicationTests {
 		ResponseEntity<String> response = restTemplate.postForEntity(baseUrl() + "/divide", jsonEntity(body),
 				String.class);
 
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 		assertThat(response.getBody()).contains("Divide by zero");
 	}
 }

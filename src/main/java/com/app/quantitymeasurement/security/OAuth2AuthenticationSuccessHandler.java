@@ -16,7 +16,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 	private final JwtService jwtService;
 
-	@Value("${app.oauth2.authorized-redirect-uri:http://localhost:3000/oauth2/redirect}")
+	@Value("${app.oauth2.authorized-redirect-uri:http://localhost:4200/oauth2/callback}")
 	private String authorizedRedirectUri;
 
 	public OAuth2AuthenticationSuccessHandler(JwtService jwtService) {

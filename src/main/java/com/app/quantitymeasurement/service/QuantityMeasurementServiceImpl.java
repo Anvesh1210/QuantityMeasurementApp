@@ -2,7 +2,6 @@ package com.app.quantitymeasurement.service;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.quantitymeasurement.dto.OperationType;
@@ -10,42 +9,29 @@ import com.app.quantitymeasurement.dto.QuantityDTO;
 import com.app.quantitymeasurement.dto.QuantityMeasurementDTO;
 import com.app.quantitymeasurement.model.QuantityMeasurementEntity;
 import com.app.quantitymeasurement.repository.QuantityMeasurementRepository;
+import com.app.quantitymeasurement.units.IMeasurable;
+import com.app.quantitymeasurement.units.LengthUnit;
+import com.app.quantitymeasurement.units.TemperatureUnit;
+import com.app.quantitymeasurement.units.VolumeUnit;
+import com.app.quantitymeasurement.units.WeightUnit;
 
 @Service
 public class QuantityMeasurementServiceImpl implements IQuantityMeasurementService {
 
-	@Autowired
-	private QuantityMeasurementRepository repository;
+	private static final double EPSILON = 1e-9;
 
-	// 🔥 BASIC CONVERSION LOGIC
-	private double convertToBase(QuantityDTO dto) {
-		switch (dto.getUnit()) {
-		case "FEET":
-			return dto.getValue() * 12;
-		case "INCHES":
-			return dto.getValue();
-		case "YARDS":
-			return dto.getValue() * 36;
-		case "GALLON":
-			return dto.getValue() * 3.785;
-		case "LITRE":
-			return dto.getValue();
-		case "CELSIUS":
-			return dto.getValue();
-		case "FAHRENHEIT":
-			return (dto.getValue() - 32) * 5 / 9;
-		default:
-			throw new RuntimeException("Invalid unit");
-		}
+	private final QuantityMeasurementRepository repository;
+
+	public QuantityMeasurementServiceImpl(QuantityMeasurementRepository repository) {
+		this.repository = repository;
 	}
 
-	// COMPARE
 	@Override
 	public QuantityMeasurementDTO compare(QuantityDTO q1, QuantityDTO q2) {
+		validateCompatible(q1, q2);
 
 		double v1 = convertToBase(q1);
 		double v2 = convertToBase(q2);
-
 		boolean result = Math.abs(v1 - v2) < 0.0001;
 
 		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.COMPARE);
@@ -56,172 +42,200 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 		return QuantityMeasurementDTO.from(entity);
 	}
 
-	// CONVERT
 	@Override
 	public QuantityMeasurementDTO convert(QuantityDTO q1, QuantityDTO q2) {
+		validateCompatible(q1, q2);
 
-		double base = convertToBase(q1);
-
-		double result;
-		switch (q2.getUnit()) {
-		case "FAHRENHEIT":
-			result = (base * 9 / 5) + 32;
-			break;
-		case "CELSIUS":
-			result = base;
-			break;
-		default:
-			result = base;
-		}
+		double baseValue = convertToBase(q1);
+		IMeasurable targetUnit = resolveUnit(q2);
+		double result = targetUnit.convertFromBaseUnit(baseValue);
 
 		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.CONVERT);
-		entity.setResultValue(result);
-		entity.setResultUnit(q2.getUnit());
+		entity.setResultValue(roundToFourDecimals(result));
+		entity.setResultUnit(normalizeUnit(q2.getUnit()));
+		entity.setResultMeasurementType(normalizeMeasurementTypeOrThrow(q2.getMeasurementType()));
 		entity.setError(false);
 
 		repository.save(entity);
 		return QuantityMeasurementDTO.from(entity);
 	}
 
-	// ADD
 	@Override
 	public QuantityMeasurementDTO add(QuantityDTO q1, QuantityDTO q2) {
-
-		double result;
-
-		// Convert q2 into q1's unit
-		if (q1.getUnit().equals("GALLON") && q2.getUnit().equals("LITRE")) {
-			double q2InGallon = q2.getValue() / 3.785;
-			result = q1.getValue() + q2InGallon;
-
-		} else if (q1.getUnit().equals("LITRE") && q2.getUnit().equals("GALLON")) {
-			double q2InLitre = q2.getValue() * 3.785;
-			result = q1.getValue() + q2InLitre;
-
-		} else {
-			// fallback for same units or other types
-			result = q1.getValue() + q2.getValue();
-		}
-
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.ADD);
-		entity.setResultValue(result);
-		entity.setResultUnit(q1.getUnit());
-		entity.setError(false);
-
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
+		validateCompatible(q1, q2);
+		return add(q1, q2, q1);
 	}
 
 	@Override
 	public QuantityMeasurementDTO add(QuantityDTO q1, QuantityDTO q2, QuantityDTO target) {
-
-		double result = convertToBase(q1) + convertToBase(q2);
-
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.ADD);
-		entity.setResultValue(result);
-		entity.setResultUnit(target.getUnit());
-		entity.setError(false);
-
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
+		return performArithmetic(q1, q2, target, OperationType.ADD);
 	}
 
-	// SUBTRACT
 	@Override
 	public QuantityMeasurementDTO subtract(QuantityDTO q1, QuantityDTO q2) {
-
-		double result;
-
-		// Convert q2 into q1 unit
-		if (q1.getUnit().equals("FEET") && q2.getUnit().equals("INCHES")) {
-			double q2InFeet = q2.getValue() / 12;
-			result = q1.getValue() - q2InFeet;
-
-		} else if (q1.getUnit().equals("INCHES") && q2.getUnit().equals("FEET")) {
-			double q2InInches = q2.getValue() * 12;
-			result = q1.getValue() - q2InInches;
-
-		} else {
-			result = q1.getValue() - q2.getValue();
-		}
-
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.SUBTRACT);
-		entity.setResultValue(result);
-		entity.setResultUnit(q1.getUnit()); // IMPORTANT
-		entity.setError(false);
-
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
+		validateCompatible(q1, q2);
+		return subtract(q1, q2, q1);
 	}
 
 	@Override
 	public QuantityMeasurementDTO subtract(QuantityDTO q1, QuantityDTO q2, QuantityDTO target) {
-
-		double result = convertToBase(q1) - convertToBase(q2);
-
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.SUBTRACT);
-		entity.setResultValue(result);
-		entity.setResultUnit(target.getUnit());
-		entity.setError(false);
-
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
+		return performArithmetic(q1, q2, target, OperationType.SUBTRACT);
 	}
 
-	// DIVIDE
 	@Override
 	public QuantityMeasurementDTO divide(QuantityDTO q1, QuantityDTO q2) {
+		validateCompatible(q1, q2);
 
-		if (q2.getValue() == 0) {
-			throw new RuntimeException("Divide by zero");
+		IMeasurable unit = resolveUnit(q1);
+		unit.validateOperationSupport(OperationType.DIVIDE.name());
+
+		double denominator = convertToBase(q2);
+		if (Math.abs(denominator) < EPSILON) {
+			throw new ArithmeticException("Divide by zero");
 		}
 
-		double result = convertToBase(q1) / convertToBase(q2);
+		double result = convertToBase(q1) / denominator;
 
 		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.DIVIDE);
-		entity.setResultValue(result);
+		entity.setResultValue(roundToFourDecimals(result));
+		entity.setResultUnit("RATIO");
+		entity.setResultMeasurementType("SCALAR");
 		entity.setError(false);
 
 		repository.save(entity);
 		return QuantityMeasurementDTO.from(entity);
 	}
 
-	// 🔥 COMMON ENTITY BUILDER
-	private QuantityMeasurementEntity buildEntity(QuantityDTO q1, QuantityDTO q2, OperationType op) {
+	private QuantityMeasurementDTO performArithmetic(QuantityDTO q1, QuantityDTO q2, QuantityDTO target,
+			OperationType operation) {
+		if (target == null) {
+			throw new IllegalArgumentException("Target unit cannot be null");
+		}
+
+		validateCompatible(q1, q2);
+		validateCompatible(q1, target);
+
+		IMeasurable sourceUnit = resolveUnit(q1);
+		sourceUnit.validateOperationSupport(operation.name());
+
+		double baseResult = switch (operation) {
+		case ADD -> convertToBase(q1) + convertToBase(q2);
+		case SUBTRACT -> convertToBase(q1) - convertToBase(q2);
+		default -> throw new IllegalArgumentException("Unsupported arithmetic operation: " + operation);
+		};
+
+		IMeasurable targetUnit = resolveUnit(target);
+		double result = targetUnit.convertFromBaseUnit(baseResult);
+
+		QuantityMeasurementEntity entity = buildEntity(q1, q2, operation);
+		entity.setResultValue(roundToFourDecimals(result));
+		entity.setResultUnit(normalizeUnit(target.getUnit()));
+		entity.setResultMeasurementType(normalizeMeasurementTypeOrThrow(target.getMeasurementType()));
+		entity.setError(false);
+
+		repository.save(entity);
+		return QuantityMeasurementDTO.from(entity);
+	}
+
+	private double convertToBase(QuantityDTO dto) {
+		IMeasurable unit = resolveUnit(dto);
+		return unit.convertToBaseUnit(dto.getValue());
+	}
+
+	private IMeasurable resolveUnit(QuantityDTO dto) {
+		String measurementType = normalizeMeasurementTypeOrThrow(dto.getMeasurementType());
+		String unitName = normalizeUnit(dto.getUnit());
+
+		try {
+			return switch (measurementType) {
+			case "LENGTH" -> LengthUnit.valueOf(unitName);
+			case "VOLUME" -> VolumeUnit.valueOf(unitName);
+			case "WEIGHT" -> WeightUnit.valueOf(unitName);
+			case "TEMPERATURE" -> TemperatureUnit.valueOf(unitName);
+			default -> throw new IllegalArgumentException("Unsupported measurement type: " + measurementType);
+			};
+		} catch (IllegalArgumentException ex) {
+			throw new IllegalArgumentException(
+					"Unit '" + unitName + "' is not valid for measurement type '" + measurementType + "'");
+		}
+	}
+
+	private void validateCompatible(QuantityDTO left, QuantityDTO right) {
+		if (left == null || right == null) {
+			throw new IllegalArgumentException("Quantity cannot be null");
+		}
+
+		String leftType = normalizeMeasurementTypeOrThrow(left.getMeasurementType());
+		String rightType = normalizeMeasurementTypeOrThrow(right.getMeasurementType());
+
+		if (!leftType.equals(rightType)) {
+			throw new IllegalArgumentException("Cross-category operation is not allowed");
+		}
+	}
+
+	private String normalizeMeasurementTypeOrThrow(String measurementType) {
+		String normalized = QuantityDTO.normalizeMeasurementType(measurementType);
+		if (normalized == null) {
+			throw new IllegalArgumentException("Invalid measurement type: " + measurementType);
+		}
+		return normalized;
+	}
+
+	private String normalizeUnit(String unit) {
+		if (unit == null || unit.isBlank()) {
+			throw new IllegalArgumentException("Unit cannot be blank");
+		}
+		return unit.trim().toUpperCase();
+	}
+
+	private double roundToFourDecimals(double value) {
+		return Math.round(value * 10000.0) / 10000.0;
+	}
+
+	private QuantityMeasurementEntity buildEntity(QuantityDTO q1, QuantityDTO q2, OperationType operation) {
 		QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
 
 		entity.setThisValue(q1.getValue());
-		entity.setThisUnit(q1.getUnit());
-		entity.setThisMeasurementType(q1.getMeasurementType());
+		entity.setThisUnit(normalizeUnit(q1.getUnit()));
+		entity.setThisMeasurementType(normalizeMeasurementTypeOrThrow(q1.getMeasurementType()));
 
 		entity.setThatValue(q2.getValue());
-		entity.setThatUnit(q2.getUnit());
-		entity.setThatMeasurementType(q2.getMeasurementType());
+		entity.setThatUnit(normalizeUnit(q2.getUnit()));
+		entity.setThatMeasurementType(normalizeMeasurementTypeOrThrow(q2.getMeasurementType()));
 
-		entity.setOperation(op.name());
-
+		entity.setOperation(operation.name());
 		return entity;
 	}
 
-	// HISTORY
-
 	@Override
 	public List<QuantityMeasurementDTO> getOperationHistory(String operation) {
-		return QuantityMeasurementDTO.fromList(repository.findByOperation(operation));
+		return QuantityMeasurementDTO.fromList(repository.findByOperation(normalizeOperation(operation)));
 	}
 
 	@Override
 	public List<QuantityMeasurementDTO> getMeasurementsByType(String type) {
-		return QuantityMeasurementDTO.fromList(repository.findByThisMeasurementType(type));
+		return QuantityMeasurementDTO.fromList(repository.findByThisMeasurementType(normalizeMeasurementTypeOrThrow(type)));
 	}
 
 	@Override
 	public long getOperationCount(String operation) {
-		return repository.countByOperationAndIsErrorFalse(operation);
+		return repository.countByOperationAndIsErrorFalse(normalizeOperation(operation));
 	}
 
 	@Override
 	public List<QuantityMeasurementDTO> getErrorHistory() {
 		return QuantityMeasurementDTO.fromList(repository.findByIsErrorTrue());
+	}
+
+	private String normalizeOperation(String operation) {
+		if (operation == null || operation.isBlank()) {
+			throw new IllegalArgumentException("Operation cannot be blank");
+		}
+
+		try {
+			return OperationType.valueOf(operation.trim().toUpperCase()).name();
+		} catch (IllegalArgumentException ex) {
+			throw new IllegalArgumentException("Unsupported operation: " + operation);
+		}
 	}
 }

@@ -38,3 +38,18 @@ CREATE TABLE IF NOT EXISTS quantity_measurement_history (
     FOREIGN KEY (entity_id)
     REFERENCES quantity_measurement_entity(id)
 );
+
+CREATE TABLE IF NOT EXISTS app_users (
+
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    mobile_number VARCHAR(20) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    enabled BOOLEAN DEFAULT TRUE,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

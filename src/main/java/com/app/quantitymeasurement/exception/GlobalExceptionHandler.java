@@ -34,9 +34,10 @@ public class GlobalExceptionHandler {
 	// Business Exception
 	@ExceptionHandler(QuantityMeasurementException.class)
 	public ResponseEntity<ErrorResponse> handleQuantityException(QuantityMeasurementException ex, WebRequest request) {
+		String errorCode = ex.getErrorCode() == null ? "QUANTITY_ERROR" : ex.getErrorCode();
 
 		ErrorResponse response = ErrorResponse.builder().timestamp(LocalDateTime.now())
-				.status(HttpStatus.BAD_REQUEST.value()).error("Quantity Measurement Error").errorCode(ex.getErrorCode())
+				.status(HttpStatus.BAD_REQUEST.value()).error("Quantity Measurement Error").errorCode(errorCode)
 				.message(ex.getMessage()).path(request.getDescription(false).replace("uri=", "")).build();
 
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -61,6 +62,15 @@ public class GlobalExceptionHandler {
 				.message("Invalid credentials").path(request.getDescription(false).replace("uri=", "")).build();
 
 		return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+	}
+
+	@ExceptionHandler({ IllegalArgumentException.class, UnsupportedOperationException.class, ArithmeticException.class })
+	public ResponseEntity<ErrorResponse> handleInvalidRequest(RuntimeException ex, WebRequest request) {
+		ErrorResponse response = ErrorResponse.builder().timestamp(LocalDateTime.now())
+				.status(HttpStatus.BAD_REQUEST.value()).error("Bad Request").errorCode("INVALID_REQUEST")
+				.message(ex.getMessage()).path(request.getDescription(false).replace("uri=", "")).build();
+
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	// Generic Exception

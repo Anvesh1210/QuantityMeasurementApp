@@ -52,7 +52,7 @@ public class JwtService {
 				.setExpiration(expiryAt).signWith(signingKey, SignatureAlgorithm.HS256).compact();
 	}
 
-	public String extractUsername(String token) {
+	public String extractSubject(String token) {
 		return extractAllClaims(token).getSubject();
 	}
 

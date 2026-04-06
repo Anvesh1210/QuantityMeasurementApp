@@ -4,6 +4,7 @@ import com.app.quantitymeasurement.dto.OperationType;
 import com.app.quantitymeasurement.dto.QuantityDTO;
 import com.app.quantitymeasurement.dto.QuantityInputDTO;
 import com.app.quantitymeasurement.dto.QuantityMeasurementDTO;
+import com.app.quantitymeasurement.security.JwtService;
 import com.app.quantitymeasurement.service.IQuantityMeasurementService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,6 +37,9 @@ public class QuantityMeasurementControllerTest {
 	@MockBean
 	private IQuantityMeasurementService service;
 
+	@MockBean
+	private JwtService jwtService;
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -66,6 +70,10 @@ public class QuantityMeasurementControllerTest {
 		result.setError(false);
 		Mockito.when(service.compare(quantity1.getThisQuantityDTO(), quantity1.getThatQuantityDTO()))
 				.thenReturn(result);
+
+		mockMvc.perform(post("/api/v1/quantities/compare").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(quantity1))).andExpect(status().isOk())
+				.andExpect(jsonPath("$.resultString").value("true"));
 	}
 
 	// ADD
