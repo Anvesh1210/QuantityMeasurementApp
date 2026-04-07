@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # ===============================
+  # MySQL Database Service
+  # ===============================
+  mysql:
+    image: mysql:8.0
+    container_name: quantity_measurement_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - qm_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 20s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+
+  # ===============================
+  # Spring Boot Application Service
+  # ===============================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quantity_measurement_app
+    environment:
+      # Spring Datasource Configuration
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+
+      # JWT Configuration
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRATION_MS: ${APP_JWT_EXPIRATION_MS}
+
+      # Application Authentication
+      APP_AUTH_NAME: ${APP_AUTH_NAME}
+      APP_AUTH_EMAIL: ${APP_AUTH_EMAIL}
+      APP_AUTH_PASSWORD: ${APP_AUTH_PASSWORD}
+      APP_AUTH_MOBILE_NUMBER: ${APP_AUTH_MOBILE_NUMBER}
+      APP_AUTH_ROLES: ${APP_AUTH_ROLES}
+
+      # OAuth2 Configuration
+      APP_OAUTH2_REDIRECT_URI: ${APP_OAUTH2_REDIRECT_URI}
+
+      # Google OAuth2 (Optional)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+
+      # Logging
+      LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL_ROOT}
+      LOGGING_LEVEL_COM_APP_QUANTITYMEASUREMENT: ${LOGGING_LEVEL_COM_APP_QUANTITYMEASUREMENT}
+
+    ports:
+      - "${APP_PORT:-8081}:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - qm_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# ===============================
+# Volumes and Networks
+# ===============================
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  qm_network:
+    driver: bridge

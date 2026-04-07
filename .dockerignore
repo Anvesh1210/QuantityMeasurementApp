@@ -1,0 +1,32 @@
+# Maven
+target/
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Version control
+.git
+.gitignore
+
+# Build files
+*.log
+*.bak
+
+# Database files
+*.db
+*.ser
+
+# Maven files
+.m2/
+mvn/
+
