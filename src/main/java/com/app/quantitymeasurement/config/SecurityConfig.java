@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -25,32 +24,28 @@ import java.util.Arrays;
 public class SecurityConfig {
 
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 	private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
 	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-			RestAuthenticationEntryPoint restAuthenticationEntryPoint,
-			OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
+						  OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-		this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
 		this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
 	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.cors(cors -> cors.configurationSource(corsConfigurationSource())).csrf(csrf -> csrf.disable())
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-				.exceptionHandling(
-						exceptions -> exceptions.authenticationEntryPoint(restAuthenticationEntryPoint))
+
+		http
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.csrf(csrf -> csrf.disable())
+
+				//allow everything (to remove 502 issue)
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/v1/auth/**", "/oauth2/**", "/login/**", "/swagger-ui/**",
-								"/swagger-ui.html", "/api-docs/**", "/h2-console/**", "/actuator/health",
-								"/error")
-						.permitAll().requestMatchers("/api/v1/quantities/**").hasAnyRole("USER", "ADMIN").anyRequest()
-						.authenticated())
-				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-				.headers(headers -> headers.frameOptions(frame -> frame.disable()))
-				.oauth2Login(oauth2 -> oauth2.successHandler(oAuth2AuthenticationSuccessHandler));
+						.anyRequest().permitAll()
+				)
+
+				// Optional: keep stateless if using JWT later
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
 		return http.build();
 	}
@@ -58,11 +53,16 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://127.0.0.1:4200",
-				"http://localhost:3000", "http://localhost:8080"));
+		configuration.setAllowedOrigins(Arrays.asList(
+				"http://localhost:4200",
+				"http://127.0.0.1:4200",
+				"http://localhost:3000",
+				"http://localhost:8080"
+		));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setAllowCredentials(true);
+
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
 		return source;
