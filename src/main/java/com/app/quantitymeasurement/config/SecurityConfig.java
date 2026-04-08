@@ -39,13 +39,28 @@ public class SecurityConfig {
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.csrf(csrf -> csrf.disable())
 
-				//allow everything (to remove 502 issue)
-				.authorizeHttpRequests(auth -> auth
-						.anyRequest().permitAll()
+				.sessionManagement(session ->
+						session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				)
 
-				// Optional: keep stateless if using JWT later
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+				.exceptionHandling(ex ->
+						ex.authenticationEntryPoint(new RestAuthenticationEntryPoint())
+				)
+
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers(
+								"/",
+								"/actuator/health",
+								"/swagger-ui/**",
+								"/v3/api-docs/**"
+						).permitAll()
+
+						// allow auth endpoints if any
+						.requestMatchers("/api/v1/auth/**").permitAll()
+
+						// everything else
+						.anyRequest().authenticated()
+				);
 
 		return http.build();
 	}
