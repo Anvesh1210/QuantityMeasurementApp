@@ -18,224 +18,206 @@ import com.app.quantitymeasurement.units.WeightUnit;
 @Service
 public class QuantityMeasurementServiceImpl implements IQuantityMeasurementService {
 
-	private static final double EPSILON = 1e-9;
+    private static final double EPSILON = 1e-9;
 
-	private final QuantityMeasurementRepository repository;
+    private final QuantityMeasurementRepository repository;
 
-	public QuantityMeasurementServiceImpl(QuantityMeasurementRepository repository) {
-		this.repository = repository;
-	}
+    public QuantityMeasurementServiceImpl(QuantityMeasurementRepository repository) {
+        this.repository = repository;
+    }
 
-	@Override
-	public QuantityMeasurementDTO compare(QuantityDTO q1, QuantityDTO q2) {
-		validateCompatible(q1, q2);
+    @Override
+    public QuantityMeasurementDTO compare(QuantityDTO q1, QuantityDTO q2) {
+        validateCompatible(q1, q2);
 
-		double v1 = convertToBase(q1);
-		double v2 = convertToBase(q2);
-		boolean result = Math.abs(v1 - v2) < 0.0001;
+        double v1 = convertToBase(q1);
+        double v2 = convertToBase(q2);
+        boolean result = Math.abs(v1 - v2) < 0.0001;
 
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.COMPARE);
-		entity.setResultString(String.valueOf(result));
-		entity.setError(false);
+        QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.COMPARE);
+        entity.setResultString(String.valueOf(result));
+        entity.setError(false);
 
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
-	}
+        repository.save(entity);
+        return QuantityMeasurementDTO.from(entity);
+    }
 
-	@Override
-	public QuantityMeasurementDTO convert(QuantityDTO q1, QuantityDTO q2) {
-		validateCompatible(q1, q2);
+    @Override
+    public QuantityMeasurementDTO convert(QuantityDTO q1, QuantityDTO q2) {
+        validateCompatible(q1, q2);
 
-		double baseValue = convertToBase(q1);
-		IMeasurable targetUnit = resolveUnit(q2);
-		double result = targetUnit.convertFromBaseUnit(baseValue);
+        double baseValue = convertToBase(q1);
+        IMeasurable targetUnit = resolveUnit(q2);
+        double result = targetUnit.convertFromBaseUnit(baseValue);
 
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.CONVERT);
-		entity.setResultValue(roundToFourDecimals(result));
-		entity.setResultUnit(normalizeUnit(q2.getUnit()));
-		entity.setResultMeasurementType(normalizeMeasurementTypeOrThrow(q2.getMeasurementType()));
-		entity.setError(false);
+        double finalResult = roundToFourDecimals(result);
 
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
-	}
+        QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.CONVERT);
+        entity.setResultValue(finalResult);
+        entity.setResultString(String.valueOf(finalResult)); // ✅ FIX
+        entity.setResultUnit(normalizeUnit(q2.getUnit()));
+        entity.setResultMeasurementType(normalizeMeasurementTypeOrThrow(q2.getMeasurementType()));
+        entity.setError(false);
 
-	@Override
-	public QuantityMeasurementDTO add(QuantityDTO q1, QuantityDTO q2) {
-		validateCompatible(q1, q2);
-		return add(q1, q2, q1);
-	}
+        repository.save(entity);
+        return QuantityMeasurementDTO.from(entity);
+    }
 
-	@Override
-	public QuantityMeasurementDTO add(QuantityDTO q1, QuantityDTO q2, QuantityDTO target) {
-		return performArithmetic(q1, q2, target, OperationType.ADD);
-	}
+    @Override
+    public QuantityMeasurementDTO add(QuantityDTO q1, QuantityDTO q2) {
+        validateCompatible(q1, q2);
+        // Default target to q1 if not provided
+        return add(q1, q2, q1);
+    }
 
-	@Override
-	public QuantityMeasurementDTO subtract(QuantityDTO q1, QuantityDTO q2) {
-		validateCompatible(q1, q2);
-		return subtract(q1, q2, q1);
-	}
+    @Override
+    public QuantityMeasurementDTO add(QuantityDTO q1, QuantityDTO q2, QuantityDTO target) {
+        return performArithmetic(q1, q2, target, OperationType.ADD);
+    }
 
-	@Override
-	public QuantityMeasurementDTO subtract(QuantityDTO q1, QuantityDTO q2, QuantityDTO target) {
-		return performArithmetic(q1, q2, target, OperationType.SUBTRACT);
-	}
+    @Override
+    public QuantityMeasurementDTO subtract(QuantityDTO q1, QuantityDTO q2) {
+        validateCompatible(q1, q2);
+        // Default target to q1 if not provided
+        return subtract(q1, q2, q1);
+    }
 
-	@Override
-	public QuantityMeasurementDTO divide(QuantityDTO q1, QuantityDTO q2) {
-		validateCompatible(q1, q2);
+    @Override
+    public QuantityMeasurementDTO subtract(QuantityDTO q1, QuantityDTO q2, QuantityDTO target) {
+        return performArithmetic(q1, q2, target, OperationType.SUBTRACT);
+    }
 
-		IMeasurable unit = resolveUnit(q1);
-		unit.validateOperationSupport(OperationType.DIVIDE.name());
+    @Override
+    public QuantityMeasurementDTO divide(QuantityDTO q1, QuantityDTO q2) {
+        validateCompatible(q1, q2);
 
-		double denominator = convertToBase(q2);
-		if (Math.abs(denominator) < EPSILON) {
-			throw new ArithmeticException("Divide by zero");
-		}
+        IMeasurable unit = resolveUnit(q1);
+        unit.validateOperationSupport(OperationType.DIVIDE.name());
 
-		double result = convertToBase(q1) / denominator;
+        double denominator = convertToBase(q2);
+        if (Math.abs(denominator) < EPSILON) {
+            throw new ArithmeticException("Divide by zero");
+        }
 
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.DIVIDE);
-		entity.setResultValue(roundToFourDecimals(result));
-		entity.setResultUnit("RATIO");
-		entity.setResultMeasurementType("SCALAR");
-		entity.setError(false);
+        double result = convertToBase(q1) / denominator;
+        double finalResult = roundToFourDecimals(result);
 
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
-	}
+        QuantityMeasurementEntity entity = buildEntity(q1, q2, OperationType.DIVIDE);
+        entity.setResultValue(finalResult);
+        entity.setResultString(String.valueOf(finalResult)); // ✅ FIX
+        entity.setResultUnit("RATIO");
+        entity.setResultMeasurementType("SCALAR");
+        entity.setError(false);
 
-	private QuantityMeasurementDTO performArithmetic(QuantityDTO q1, QuantityDTO q2, QuantityDTO target,
-			OperationType operation) {
-		if (target == null) {
-			throw new IllegalArgumentException("Target unit cannot be null");
-		}
+        repository.save(entity);
+        return QuantityMeasurementDTO.from(entity);
+    }
 
-		validateCompatible(q1, q2);
-		validateCompatible(q1, target);
+    private QuantityMeasurementDTO performArithmetic(QuantityDTO q1, QuantityDTO q2, QuantityDTO target,
+            OperationType operation) {
 
-		IMeasurable sourceUnit = resolveUnit(q1);
-		sourceUnit.validateOperationSupport(operation.name());
+        // If target is null, default to q1
+        if (target == null) {
+            target = q1;
+        }
 
-		double baseResult = switch (operation) {
-		case ADD -> convertToBase(q1) + convertToBase(q2);
-		case SUBTRACT -> convertToBase(q1) - convertToBase(q2);
-		default -> throw new IllegalArgumentException("Unsupported arithmetic operation: " + operation);
-		};
+        validateCompatible(q1, q2);
+        validateCompatible(q1, target);
 
-		IMeasurable targetUnit = resolveUnit(target);
-		double result = targetUnit.convertFromBaseUnit(baseResult);
+        IMeasurable sourceUnit = resolveUnit(q1);
+        sourceUnit.validateOperationSupport(operation.name());
 
-		QuantityMeasurementEntity entity = buildEntity(q1, q2, operation);
-		entity.setResultValue(roundToFourDecimals(result));
-		entity.setResultUnit(normalizeUnit(target.getUnit()));
-		entity.setResultMeasurementType(normalizeMeasurementTypeOrThrow(target.getMeasurementType()));
-		entity.setError(false);
+        double baseResult = switch (operation) {
+            case ADD -> convertToBase(q1) + convertToBase(q2);
+            case SUBTRACT -> convertToBase(q1) - convertToBase(q2);
+            default -> throw new IllegalArgumentException("Unsupported operation");
+        };
 
-		repository.save(entity);
-		return QuantityMeasurementDTO.from(entity);
-	}
+        IMeasurable targetUnit = resolveUnit(target);
+        double result = targetUnit.convertFromBaseUnit(baseResult);
 
-	private double convertToBase(QuantityDTO dto) {
-		IMeasurable unit = resolveUnit(dto);
-		return unit.convertToBaseUnit(dto.getValue());
-	}
+        double finalResult = roundToFourDecimals(result);
 
-	private IMeasurable resolveUnit(QuantityDTO dto) {
-		String measurementType = normalizeMeasurementTypeOrThrow(dto.getMeasurementType());
-		String unitName = normalizeUnit(dto.getUnit());
+        QuantityMeasurementEntity entity = buildEntity(q1, q2, operation);
+        entity.setResultValue(finalResult);
+        entity.setResultString(String.valueOf(finalResult));
+        entity.setResultUnit(normalizeUnit(target.getUnit()));
+        entity.setResultMeasurementType(normalizeMeasurementTypeOrThrow(target.getMeasurementType()));
+        entity.setError(false);
 
-		try {
-			return switch (measurementType) {
-			case "LENGTH" -> LengthUnit.valueOf(unitName);
-			case "VOLUME" -> VolumeUnit.valueOf(unitName);
-			case "WEIGHT" -> WeightUnit.valueOf(unitName);
-			case "TEMPERATURE" -> TemperatureUnit.valueOf(unitName);
-			default -> throw new IllegalArgumentException("Unsupported measurement type: " + measurementType);
-			};
-		} catch (IllegalArgumentException ex) {
-			throw new IllegalArgumentException(
-					"Unit '" + unitName + "' is not valid for measurement type '" + measurementType + "'");
-		}
-	}
+        repository.save(entity);
+        return QuantityMeasurementDTO.from(entity);
+    }
 
-	private void validateCompatible(QuantityDTO left, QuantityDTO right) {
-		if (left == null || right == null) {
-			throw new IllegalArgumentException("Quantity cannot be null");
-		}
+    private double convertToBase(QuantityDTO dto) {
+        IMeasurable unit = resolveUnit(dto);
+        return unit.convertToBaseUnit(dto.getValue());
+    }
 
-		String leftType = normalizeMeasurementTypeOrThrow(left.getMeasurementType());
-		String rightType = normalizeMeasurementTypeOrThrow(right.getMeasurementType());
+    private IMeasurable resolveUnit(QuantityDTO dto) {
+        String type = normalizeMeasurementTypeOrThrow(dto.getMeasurementType());
+        String unit = normalizeUnit(dto.getUnit());
 
-		if (!leftType.equals(rightType)) {
-			throw new IllegalArgumentException("Cross-category operation is not allowed");
-		}
-	}
+        return switch (type) {
+        case "LENGTH" -> LengthUnit.valueOf(unit);
+        case "VOLUME" -> VolumeUnit.valueOf(unit);
+        case "WEIGHT" -> WeightUnit.valueOf(unit);
+        case "TEMPERATURE" -> TemperatureUnit.valueOf(unit);
+        default -> throw new IllegalArgumentException("Unsupported type");
+        };
+    }
 
-	private String normalizeMeasurementTypeOrThrow(String measurementType) {
-		String normalized = QuantityDTO.normalizeMeasurementType(measurementType);
-		if (normalized == null) {
-			throw new IllegalArgumentException("Invalid measurement type: " + measurementType);
-		}
-		return normalized;
-	}
+    private void validateCompatible(QuantityDTO q1, QuantityDTO q2) {
+        if (!normalizeMeasurementTypeOrThrow(q1.getMeasurementType())
+                .equals(normalizeMeasurementTypeOrThrow(q2.getMeasurementType()))) {
+            throw new IllegalArgumentException("Cross-category operation not allowed");
+        }
+    }
 
-	private String normalizeUnit(String unit) {
-		if (unit == null || unit.isBlank()) {
-			throw new IllegalArgumentException("Unit cannot be blank");
-		}
-		return unit.trim().toUpperCase();
-	}
+    private String normalizeMeasurementTypeOrThrow(String type) {
+        return type == null ? null : type.trim().toUpperCase();
+    }
 
-	private double roundToFourDecimals(double value) {
-		return Math.round(value * 10000.0) / 10000.0;
-	}
+    private String normalizeUnit(String unit) {
+        return unit.trim().toUpperCase();
+    }
 
-	private QuantityMeasurementEntity buildEntity(QuantityDTO q1, QuantityDTO q2, OperationType operation) {
-		QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
+    private double roundToFourDecimals(double value) {
+        return Math.round(value * 10000.0) / 10000.0;
+    }
 
-		entity.setThisValue(q1.getValue());
-		entity.setThisUnit(normalizeUnit(q1.getUnit()));
-		entity.setThisMeasurementType(normalizeMeasurementTypeOrThrow(q1.getMeasurementType()));
+    private QuantityMeasurementEntity buildEntity(QuantityDTO q1, QuantityDTO q2, OperationType op) {
+        QuantityMeasurementEntity e = new QuantityMeasurementEntity();
 
-		entity.setThatValue(q2.getValue());
-		entity.setThatUnit(normalizeUnit(q2.getUnit()));
-		entity.setThatMeasurementType(normalizeMeasurementTypeOrThrow(q2.getMeasurementType()));
+        e.setThisValue(q1.getValue());
+        e.setThisUnit(normalizeUnit(q1.getUnit()));
+        e.setThisMeasurementType(normalizeMeasurementTypeOrThrow(q1.getMeasurementType()));
 
-		entity.setOperation(operation.name());
-		return entity;
-	}
+        e.setThatValue(q2.getValue());
+        e.setThatUnit(normalizeUnit(q2.getUnit()));
+        e.setThatMeasurementType(normalizeMeasurementTypeOrThrow(q2.getMeasurementType()));
 
-	@Override
-	public List<QuantityMeasurementDTO> getOperationHistory(String operation) {
-		return QuantityMeasurementDTO.fromList(repository.findByOperation(normalizeOperation(operation)));
-	}
+        e.setOperation(op.name());
+        return e;
+    }
 
-	@Override
-	public List<QuantityMeasurementDTO> getMeasurementsByType(String type) {
-		return QuantityMeasurementDTO.fromList(repository.findByThisMeasurementType(normalizeMeasurementTypeOrThrow(type)));
-	}
+    @Override
+    public List<QuantityMeasurementDTO> getOperationHistory(String operation) {
+        return QuantityMeasurementDTO.fromList(repository.findByOperation(operation.toUpperCase()));
+    }
 
-	@Override
-	public long getOperationCount(String operation) {
-		return repository.countByOperationAndIsErrorFalse(normalizeOperation(operation));
-	}
+    @Override
+    public List<QuantityMeasurementDTO> getMeasurementsByType(String type) {
+        return QuantityMeasurementDTO.fromList(repository.findByThisMeasurementType(type.toUpperCase()));
+    }
 
-	@Override
-	public List<QuantityMeasurementDTO> getErrorHistory() {
-		return QuantityMeasurementDTO.fromList(repository.findByIsErrorTrue());
-	}
+    @Override
+    public long getOperationCount(String operation) {
+        return repository.countByOperationAndIsErrorFalse(operation.toUpperCase());
+    }
 
-	private String normalizeOperation(String operation) {
-		if (operation == null || operation.isBlank()) {
-			throw new IllegalArgumentException("Operation cannot be blank");
-		}
-
-		try {
-			return OperationType.valueOf(operation.trim().toUpperCase()).name();
-		} catch (IllegalArgumentException ex) {
-			throw new IllegalArgumentException("Unsupported operation: " + operation);
-		}
-	}
+    @Override
+    public List<QuantityMeasurementDTO> getErrorHistory() {
+        return QuantityMeasurementDTO.fromList(repository.findByIsErrorTrue());
+    }
 }

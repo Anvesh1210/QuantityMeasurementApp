@@ -2,6 +2,7 @@ package com.app.quantitymeasurement.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+ 	
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AuthControllerIntegrationTest {
@@ -40,7 +42,8 @@ class AuthControllerIntegrationTest {
 		HttpEntity<Map<String, String>> registerPayload = registerJsonEntity(name, email, password, mobileNumber);
 		HttpEntity<Map<String, String>> loginPayload = loginJsonEntity(email, password);
 
-		ResponseEntity<Map> registerResponse = restTemplate.postForEntity(authUrl("/register"), registerPayload, Map.class);
+		ResponseEntity<Map> registerResponse = restTemplate.postForEntity(authUrl("/register"), registerPayload,
+				Map.class);
 
 		assertThat(registerResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(registerResponse.getBody()).isNotNull();

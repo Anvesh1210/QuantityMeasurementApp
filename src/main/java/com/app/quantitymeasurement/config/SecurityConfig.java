@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -35,45 +36,39 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		http
-				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-				.csrf(csrf -> csrf.disable())
+	    http
+	        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+	        .csrf(csrf -> csrf.disable())
 
-				.sessionManagement(session ->
-						session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-				)
+	        .sessionManagement(session ->
+	            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+	        )
 
-				.exceptionHandling(ex ->
-						ex.authenticationEntryPoint(new RestAuthenticationEntryPoint())
-				)
+	        .exceptionHandling(ex ->
+	            ex.authenticationEntryPoint(new RestAuthenticationEntryPoint())
+	        )
 
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers(
-								"/",
-								"/actuator/health",
-								"/swagger-ui/**",
-								"/v3/api-docs/**"
-						).permitAll()
+	        .authorizeHttpRequests(auth -> auth
+	            .requestMatchers(
+	                "/",
+	                "/actuator/health",
+	                "/swagger-ui/**",
+	                "/v3/api-docs/**"
+	            ).permitAll()
 
-						// allow auth endpoints if any
-						.requestMatchers("/api/v1/auth/**").permitAll()
+	            .requestMatchers("/api/v1/auth/**").permitAll()
 
-						// everything else
-						.anyRequest().authenticated()
-				);
+	            .anyRequest().authenticated()
+	        )
 
-		return http.build();
+	        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+	    return http.build();
 	}
-
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList(
-				"http://localhost:4200",
-				"http://127.0.0.1:4200",
-				"http://localhost:3000",
-				"http://localhost:8080"
-		));
+		configuration.setAllowedOriginPatterns(Arrays.asList("*"));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setAllowCredentials(true);
