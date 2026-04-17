@@ -18,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithMockUser(roles = "USER")
 public class QuantityMeasurementControllerTest {
 
+	@MockBean
+	private UserDetailsService userDetailsService;
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -68,7 +71,7 @@ public class QuantityMeasurementControllerTest {
 		result.setOperation(OperationType.COMPARE);
 		result.setResultString("true");
 		result.setError(false);
-		Mockito.when(service.compare(quantity1.getThisQuantityDTO(), quantity1.getThatQuantityDTO()))
+		Mockito.when(service.compare(Mockito.any(QuantityDTO.class), Mockito.any(QuantityDTO.class)))
 				.thenReturn(result);
 
 		mockMvc.perform(post("/api/v1/quantities/compare").contentType(MediaType.APPLICATION_JSON)
@@ -85,7 +88,7 @@ public class QuantityMeasurementControllerTest {
 		result.setResultUnit("FEET");
 		result.setResultMeasurementType("LENGTH");
 		result.setError(false);
-		Mockito.when(service.add(quantity1.getThisQuantityDTO(), quantity1.getThatQuantityDTO())).thenReturn(result);
+		Mockito.when(service.add(Mockito.any(QuantityDTO.class), Mockito.any(QuantityDTO.class))).thenReturn(result);
 		mockMvc.perform(post("/api/v1/quantities/add").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(quantity1))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.resultValue").value(2.0));
@@ -114,7 +117,7 @@ public class QuantityMeasurementControllerTest {
 		result.setResultUnit("FEET");
 		result.setResultMeasurementType("LENGTH");
 		result.setError(false);
-		Mockito.when(service.divide(quantity1.getThisQuantityDTO(), quantity1.getThatQuantityDTO())).thenReturn(result);
+		Mockito.when(service.divide(Mockito.any(QuantityDTO.class), Mockito.any(QuantityDTO.class))).thenReturn(result);
 		mockMvc.perform(post("/api/v1/quantities/divide").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(quantity1))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.resultValue").value(1.0));
